@@ -1,0 +1,8 @@
+<p>
+  user-list works!
+</p>
+<ul>
+  <li *ngFor="let name of names"> Hello {{name}}</li>
+</ul>
+<p>来个好玩的</p>
+<app-use-item *ngFor="let name of names" [name]="name"></app-use-item>
