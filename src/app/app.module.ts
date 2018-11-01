@@ -8,7 +8,7 @@ import { UseItemComponent } from './components/use-item/use-item.component';
 import { UserListComponent } from './components/user-list/user-list.component';
 import { HeroesComponent } from './components/heroes/heroes.component';
 import { TestComponentComponent } from './components/test-component/test-component.component';
-
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -20,6 +20,7 @@ import { TestComponentComponent } from './components/test-component/test-compone
     TestComponentComponent
   ],
   imports: [
+    FormsModule,
     BrowserModule
   ],
   providers: [],

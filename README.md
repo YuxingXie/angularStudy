@@ -219,3 +219,52 @@ import { HeroesComponent } from './components/heroes/heroes.component';
 [(ngModel)] 是 Angular 的双向数据绑定语法。
      
 这里把 hero.name 属性绑定到了 HTML 的 textbox 元素上，以便数据流可以双向流动：从 hero.name 属性流动到 textbox，并且从 textbox 流回到 hero.name 。
+
+#### 缺少 FormsModule
+
+注意，当你加上 [(ngModel)] 之后这个应用无法工作了。
+
+打开浏览器的开发工具，就会在控制台中看到如下信息：
+
+```text
+Template parse errors:
+Can't bind to 'ngModel' since it isn't a known property of 'input'.
+```
+
+虽然 ngModel 是一个有效的 Angular 指令，不过它在默认情况下是不可用的。
+
+它属于一个可选模块 FormsModule，你必须自行添加此模块才能使用该指令。
+
+### AppModule
+
+Angular 需要知道如何把应用程序的各个部分组合到一起，以及该应用需要哪些其它文件和库。 这些信息被称为元数据（metadata）。
+
+有些元数据位于 @Component 装饰器中，你会把它加到组件类上。 另一些关键性的元数据位于 @NgModule 装饰器中(见src/app/app.module.ts,它定义了AppModule类)。
+
+最重要的 @NgModule 装饰器位于顶级类 AppModule 上。
+
+Angular CLI 在创建项目的时候就在 src/app/app.module.ts 中生成了一个 AppModule 类。 这里也就是你要添加 FormsModule 的地方。
+
+#### 导入 FormsModule
+     
+打开 AppModule (app.module.ts) 并从 @angular/forms 库中导入 FormsModule 符号。
+
+app.module.ts (FormsModule symbol import)
+```typescript
+import { FormsModule } from '@angular/forms'; // <-- NgModel lives here
+```
+然后把 FormsModule 添加到 @NgModule 元数据的 imports 数组中，这里是该应用所需外部模块的列表。
+
+app.module.ts ( @NgModule imports)
+content_copy
+imports: [
+ BrowserModule,
+ FormsModule
+],
+刷新浏览器，应用又能正常工作了。你可以编辑英雄的名字，并且会看到这个改动立刻体现在这个输入框上方的 <h2> 中。
+
+注意：
+
+1. 并不需要把FormsModule加入AppModule的@declaration中 ,@declaration应该时自己声明的组件，而FormsModule是内置组件，并不需要声明。
+
+2. 记住双向绑定[{ngModel}]='property'和插值表达式{{property}}的语法。
