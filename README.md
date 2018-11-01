@@ -117,4 +117,105 @@ export class HeroesComponent implements OnInit {
 
 }
 ```
-可以看到和app.component.ts比，多了构造方法和ngOnInit方法。
+可以看到和app.component.ts比，类实现了OnInit接口，多了构造方法。
+
+再看看@Component部分，这是一个类级别的注解(java程序员这样理解的)，参数是一个js对象，包含selector、templateUrl、styleUrls。
+
+1. selector— 组件的选择器（CSS 元素选择器）
+2. templateUrl— 组件模板文件的位置。
+3. styleUrls— 组件私有 CSS 样式表文件的位置。
+
+由selector: 'app-heroes'可以看出，选择器命名由项目名前缀加组建名用""-"串起来组成。
+
+CSS 元素选择器 app-heroes 用来在父组件的模板中匹配 HTML 元素的名称，以识别出该组件。
+
+ngOnInit 是一个生命周期钩子，Angular 在创建完组件后很快就会调用 ngOnInit。这里是放置初始化逻辑的好地方。
+
+始终要 export 这个组件类，以便在其它地方（比如 AppModule）导入它。
+
+
+
+### 显示 HeroesComponent 视图
+
+要显示 HeroesComponent 你必须把它加到壳组件 AppComponent 的模板中。
+
+别忘了，app-heroes 就是 HeroesComponent 的 元素选择器。 所以，只要把 <app-heroes> 元素添加到 AppComponent 的模板文件中就可以了，就放在标题下方。
+
+### 创建 Hero 类
+
+java程序员认为，component在程序中充当控制器角色，而要创建的Hero类可以比作JavaBean。它充当模型的角色，用来承载数据。
+
+所以我不像学习网上的直接建在app目录下，而是建在app/entities目录下。
+```typescript
+export class Hero {
+  id: number;
+  name: string;
+}
+
+```
+记住，Hero是一个类，而不是一个js对象或是json，还要export。
+
+疑问，组件可以建在app/components目录下吗？试试：
+```text
+ ng generate component  components/test-component
+
+```
+
+创建成功！所以可以把组件放到指定的文件夹内。现在把heros组件移到components文件夹内，然而报错,一个是import hero时报错，这个改完还有一个错：
+```text
+ng:component 'HeroComponent' is not included in a module and will not be available inside a template.Consider adding it to a ngModule declaration.
+```
+
+意思是组件没有被包含到module(模块)中，不可在一个模板中使用。
+
+原来组件要加到模板中才能被使用。src/app/app.module.ts就是包含组件的地方，我们进去看看，果然老的组件引用报错了，把这个改一改。
+
+```typescript
+import { HeroesComponent } from './components/heroes/heroes.component';
+```
+好了(如果你使用webStorm那么把文件关闭一下再打开报错消失)！
+
+现在我甚至要尝试吧组件app也移到src/app/components/app目录内(先不要破坏angular的目录命名和组件命名规则)，修改app.module.ts，成功！
+
+现在src/app目录内包含components和entities文件夹和app.module.ts文件，清爽了很多。
+
+### 使用 UppercasePipe 进行格式化
+
+把 hero.name 的绑定修改成这样：
+
+```html
+<h2>{{hero.name | uppercase}} Details</h2>
+```
+
+浏览器刷新了。现在，英雄的名字显示成了大写字母。
+
+绑定表达式中的 uppercase 位于管道操作符（ | ）的右边，用来调用内置管道 UppercasePipe。
+
+管道 是格式化字符串、金额、日期和其它显示数据的好办法。 Angular 发布了一些内置管道，而且你还可以创建自己的管道。
+
+可以认为管道是我们为某个对象扩展了一个方法。
+
+### 编辑英雄名字
+
+用户应该能在一个 <input> 输入框中编辑英雄的名字。
+
+当用户输入时，这个输入框应该能同时显示和修改英雄的 name 属性。 也就是说，数据流从组件类流出到屏幕，并且从屏幕流回到组件类。
+
+要想让这种数据流动自动化，就要在表单元素 <input> 和组件的 hero.name 属性之间建立双向数据绑定。
+
+#### 双向绑定
+     
+ 把模板中的英雄名字重构成这样：
+     
+ src/app/components/heroes/heroes.component.html (HeroesComponent's template)
+ ```html
+    <div>
+       <label>name:
+         <input [(ngModel)]="hero.name" placeholder="name">
+       </label>
+     </div>
+```
+ 
+[(ngModel)] 是 Angular 的双向数据绑定语法。
+     
+这里把 hero.name 属性绑定到了 HTML 的 textbox 元素上，以便数据流可以双向流动：从 hero.name 属性流动到 textbox，并且从 textbox 流回到 hero.name 。
