@@ -484,16 +484,16 @@ src/app/heroes/heroes.component.html (*ngIf)
 当用户选择一个英雄时，selectedHero 也就有了值，并且 ngIf 把英雄的详情放回到 DOM 中。
 
 #### 给所选英雄添加样式
-所有的 $lt;li$gt; 元素看起来都是一样的，因此很难从列表中识别出所选英雄。
+所有的 &lt;li&gt; 元素看起来都是一样的，因此很难从列表中识别出所选英雄。
 
 如果用户点击了“Magneta”，这个英雄应该用一个略有不同的背景色显示出来。
 
-所选英雄的颜色来自于你前面添加的样式中的 CSS 类 .selected。 所以你只要在用户点击一个$lt;li$gt; 时把 .selected 类应用到该元素上就可以了。
+所选英雄的颜色来自于你前面添加的样式中的 CSS 类 .selected。 所以你只要在用户点击一个&lt;li&gt; 时把 .selected 类应用到该元素上就可以了。
 
 Angular 的 CSS 类绑定机制让根据条件添加或移除一个 CSS 类变得很容易。 只要把 [class.some-css-class]="some-condition"
 添加到你要施加样式的元素上就可以了。
 
-在 HeroesComponent 模板中的 $lt;li$gt; 元素上添加 [class.selected] 绑定，代码如下：
+在 HeroesComponent 模板中的 &lt;li&gt; 元素上添加 [class.selected] 绑定，代码如下：
 
 heroes.component.html (toggle the 'selected' CSS class)
 ```text
@@ -501,7 +501,7 @@ heroes.component.html (toggle the 'selected' CSS class)
 ```
 如果当前行的英雄和 selectedHero 相同，Angular 就会添加 CSS 类 selected，否则就会移除它。
 
-最终的 $lt;li$gt; 是这样的：
+最终的 &lt;li&gt; 是这样的：
 
 heroes.component.html (list item hero)
 ```html
