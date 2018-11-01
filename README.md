@@ -292,3 +292,95 @@ declarations: [
 ],
 注意 AppModule 声明了应用中的所有组件，AppComponent 和 HeroesComponent。
 
+## 显示英雄列表
+本页中，你将扩展《英雄指南》应用，让它显示一个英雄列表， 并允许用户选择一个英雄，查看该英雄的详细信息。
+
+### 创建模拟（mock）的英雄数据
+
+你需要一些英雄数据以供显示。
+
+最终，你会从远端的数据服务器获取它。 不过目前，你要先创建一些模拟的英雄数据，并假装它们是从服务器上取到的。
+
+在 src/app/mock/ 文件夹中创建一个名叫 mock-heroes.ts 的文件。 定义一个包含十个英雄的常量数组 HEROES，并导出它。
+该文件是这样的。
+
+src/app/mock/mock-heroes.ts:
+```typescript
+import { Hero } from '../entities/hero';
+
+export const HEROES: Hero[] = [
+  { id: 11, name: 'Mr. Nice' },
+  { id: 12, name: 'Narco' },
+  { id: 13, name: 'Bombasto' },
+  { id: 14, name: 'Celeritas' },
+  { id: 15, name: 'Magneta' },
+  { id: 16, name: 'RubberMan' },
+  { id: 17, name: 'Dynama' },
+  { id: 18, name: 'Dr IQ' },
+  { id: 19, name: 'Magma' },
+  { id: 20, name: 'Tornado' }
+];
+```
+注意，它不是一个类，而是一个Hero数组常量。
+
+显示这些英雄
+你要在 HeroesComponent 的顶部显示这个英雄列表。
+
+打开 HeroesComponent 类文件，并导入模拟的 HEROES。
+
+src/app/components/heroes/heroes.component.ts：
+```typescript
+import { HEROES } from 'app/mock/mock-heroes';
+```
+注意，这里我没有像书中一样使用相对路径，而是使用从app目录开始的相对项目根路径的路径表示法。我建议采用这种方式，因为文件层次结构
+显得清晰可见。
+
+往类中添加一个 heroes 属性，这样可以暴露出这些英雄，以供绑定。
+
+```typescript
+export class HeroesComponent implements OnInit {
+
+  heroes = HEROES;
+  //other codes
+}
+```
+
+### 使用 *ngFor 列出这些英雄
+打开 HeroesComponent 的模板文件，并做如下修改：
+
+在顶部添加 &lt;h2&gt;，
+
+然后添加表示无序列表的 HTML 元素（&lt;ul&gt;）
+
+
+在 &lt;ul&gt; 中插入一个 &lt;li&gt; 元素，以显示单个 hero 的属性。
+
+点缀上一些 CSS 类（稍后你还会添加更多 CSS 样式）。
+
+做完之后应该是这样的：
+
+heroes.component.html (heroes template)
+```html
+<h2>My Heroes</h2>
+<ul class="heroes">
+  <li>
+    <span class="badge">{{hero.id}}</span> {{hero.name}}
+  </li>
+</ul>
+```
+现在，把 <li> 修改成这样：
+```html
+<li *ngFor="let hero of heroes">
+```
+*ngFor 是一个 Angular 的复写器（repeater）指令。 它会为列表中的每项数据复写它的宿主元素。
+
+在这个例子中
+
+&lt;li&gt; 就是 *ngFor 的宿主元素
+
+heroes 就是来自 HeroesComponent 类的列表。
+
+当依次遍历这个列表时，hero 会为每个迭代保存当前的英雄对象。
+```text
+不要忘了 ngFor 前面的星号（*），它是该语法中的关键部分。
+```
