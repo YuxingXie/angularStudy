@@ -1,6 +1,9 @@
 
 重新开张angular学习了，这次不看书了，前端的书总是落后当前版本，这也导致了我中断学习7个月。这次学习的依据是angular中文网 https://www.angular.cn/guide/quickstart
 
+
+# 快速上手
+
 ## 第一步：安装 Angular CLI
 
 略
@@ -35,7 +38,6 @@ ng new app
  
  ```text
   You cannot use the new command inside an Angular CLI project.
-
  ```
  
 除非删除package.json。
@@ -49,3 +51,70 @@ ng serve --open
 
 ng serve -o
 ```
+## 步骤 4：编辑你的第一个Angular组件
+
+组件 是 Angular 应用中的基本构造块。 它们在屏幕上显示数据、监听用户输入，并根据这些输入采取行动。
+
+app.component.ts:
+```typeScript
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  title = 'app';
+}
+
+```
+
+app.component.html:
+```html
+
+<div style="text-align:center">
+  <h1>
+    Welcome to {{ title }}!
+  </h1>
+
+</div>
+
+```
+可以看到，app.component.html可以使用app.component.ts中定义的类AppComponent中的类属性。
+
+# 教程
+
+## 英雄指南
+
+https://www.angular.cn/tutorial
+
+
+主要是了解插值表达式，不详解，略。
+
+## 英雄编辑器
+
+### 创建英雄列表组件
+```text
+ng generate component heroes
+```
+
+heroes.component.ts:
+```typescript
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-heroes',
+  templateUrl: './heroes.component.html',
+  styleUrls: ['./heroes.component.css']
+})
+export class HeroesComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit() {
+  }
+
+}
+```
+可以看到和app.component.ts比，多了构造方法和ngOnInit方法。

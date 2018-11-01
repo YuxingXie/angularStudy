@@ -6,6 +6,7 @@ import { AppComponent } from './app.component';
 import { HelloWorldComponent } from './hello-world/hello-world.component';
 import { UseItemComponent } from './use-item/use-item.component';
 import { UserListComponent } from './user-list/user-list.component';
+import { HeroesComponent } from './heroes/heroes.component';
 
 
 @NgModule({
@@ -13,7 +14,8 @@ import { UserListComponent } from './user-list/user-list.component';
     AppComponent,
     HelloWorldComponent,
     UseItemComponent,
-    UserListComponent
+    UserListComponent,
+    HeroesComponent
   ],
   imports: [
     BrowserModule
