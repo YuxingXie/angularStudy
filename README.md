@@ -94,7 +94,7 @@ https://www.angular.cn/tutorial
 
 主要是了解插值表达式，不详解，略。
 
-## 英雄编辑器
+## 1.英雄编辑器
 
 ### 创建英雄列表组件
 ```text
@@ -292,7 +292,7 @@ declarations: [
 ],
 注意 AppModule 声明了应用中的所有组件，AppComponent 和 HeroesComponent。
 
-## 显示英雄列表
+## 2.显示英雄列表
 本页中，你将扩展《英雄指南》应用，让它显示一个英雄列表， 并允许用户选择一个英雄，查看该英雄的详细信息。
 
 ### 创建模拟（mock）的英雄数据
@@ -511,3 +511,65 @@ heroes.component.html (list item hero)
   <span class="badge">{{hero.id}}</span> {{hero.name}}
 </li>
 ```
+ngIf当然可以解决问题，但如果英雄详情放在顶部，点击列表时会出现屏幕晃动，给selectedHero一个初始值是比较好的方案。
+
+到现在为止,出现了：
+* 三种绑定：双向绑定、事件绑定和类绑定，双向绑定和类绑定都是放在方括号中，事件绑定放在圆括号中；
+
+* 两个指令：ngIf和ngFor，都是以“*”开头.
+
+## 3.主从组件
+
+上一章节中出现了“主从结构”这个概念。其实“主从结构”就是列表到详情的这种结构。这里的主从组件就是列表组件到详情组件。
+
+把英雄详情移入一个独立的、可复用的 HeroDetailComponent。
+
+HeroesComponent 将仅仅用来表示英雄列表。 HeroDetailComponent 将用来表示所选英雄的详情。
+
+### 3.1.制作 HeroDetailComponent
+```text
+ng generate component components/hero-detail
+```
+hero-detail.component.spec.ts是HeroDetailComponent 类的测试文件。HeroDetailComponent也自动加入了
+AppModule（src/app/app.module.ts）的import和@declaration中了。
+
+src/app/components/hero-detail/hero-detail.component.html
+```html
+<div *ngIf="hero">
+
+  <h2>{{hero.name | uppercase}} Details</h2>
+  <div><span>id: </span>{{hero.id}}</div>
+  <div>
+    <label>name:
+      <input [(ngModel)]="hero.name" placeholder="name"/>
+    </label>
+  </div>
+
+</div>
+```
+
+### 3.2.添加 @Input() hero 属性
+HeroDetailComponent 模板中绑定了组件中的 hero 属性，它的类型是 Hero。
+
+打开 HeroDetailComponent 类文件，并导入 Hero 符号。
+
+src/app/components/hero-detail/hero-detail.component.ts (import Hero)
+```typescript
+import { Hero } from 'app/entities/hero';
+```
+hero 属性必须是一个带有 @Input() 装饰器的输入属性，因为外部的 HeroesComponent 组件将会绑定到它。就像这样：
+```html
+<app-hero-detail [hero]="selectedHero"></app-hero-detail>
+```
+修改 @angular/core 的导入语句，导入 Input 符号。
+
+src/app/components/hero-detail/hero-detail.component.ts (import Input)
+```typescript
+import { Component, OnInit, Input } from '@angular/core';
+
+```
+添加一个带有 @Input() 装饰器的 hero 属性。
+
+content_copy
+@Input() hero: Hero;
+这就是你要对 HeroDetailComponent 类做的唯一一项修改。 没有其它属性，也没有展示逻辑。这个组件所做的只是通过 hero 属性接收一个英雄对象，并显示它。
