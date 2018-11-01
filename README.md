@@ -1,5 +1,7 @@
 
-重新开张angular学习了，这次不看书了，前端的书总是落后当前版本，这也导致了我中断学习7个月。这次学习的依据是angular中文网 https://www.angular.cn/guide/quickstart
+重新开张angular学习了，这次不看书了，前端的书总是落后当前版本，这也导致了我中断学习7个月。
+
+这次学习的依据是angular中文网 https://www.angular.cn/guide/quickstart
 
 
 # 快速上手
