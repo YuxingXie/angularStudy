@@ -573,3 +573,23 @@ import { Component, OnInit, Input } from '@angular/core';
 content_copy
 @Input() hero: Hero;
 这就是你要对 HeroDetailComponent 类做的唯一一项修改。 没有其它属性，也没有展示逻辑。这个组件所做的只是通过 hero 属性接收一个英雄对象，并显示它。
+
+### 3.3.显示 HeroDetailComponent
+略，你应该知道怎么做了。
+
+### 3.4.修改 HeroesComponent 的模板
+
+[hero]="selectedHero" 是 Angular 的属性绑定语法。
+
+这是一种单向数据绑定（还记得双向绑定[{ngModel}]='property'吧）。从 HeroesComponent 的 selectedHero 属性绑定到目标元素的 hero 属性，并映射到了
+HeroDetailComponent 的 hero 属性。
+
+我们在HeroDetail的模板的输入框中修改英雄名字的时候，我们看到列表中英雄的名字也跟着改变了。
+
+难道我们是被“单项数据绑定”字面上的意思迷惑了？难道不仅能从 HeroesComponent 的 selectedHero 属性绑定到目标元素的 hero 属性，
+还能反过来从HeroDetail的hero绑定到HeroesComponent的selectedHero属性吗？
+
+这是否表示[hero]="selectedHero" 本质上是双向绑定呢？
+
+这似乎是一个哲学问题，稍有点深奥。因为HeroDetail的input中使用了[{ngModel}]=hero.name表示双向绑定。到底是谁导致了
+数据双向绑定呢？
