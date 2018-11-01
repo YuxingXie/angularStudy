@@ -270,3 +270,25 @@ imports: [
 1. 并不需要把FormsModule加入AppModule的@declaration中 ,@declaration应该时自己声明的组件，而FormsModule是内置组件，并不需要声明。
 
 2. 记住双向绑定[{ngModel}]='property'和插值表达式{{property}}的语法。
+
+#### 声明 HeroesComponent
+
+每个组件都必须声明在（且只能声明在）一个 NgModule 中。
+
+你没有声明过 HeroesComponent，可为什么本应用却正常呢？
+
+这是因为 Angular CLI 在生成 HeroesComponent 组件的时候就自动把它加到了 AppModule 中。
+
+打开 src/app/app.module.ts 你就会发现 HeroesComponent 已经在顶部导入过了。
+
+content_copy
+import { HeroesComponent } from './heroes/heroes.component';
+HeroesComponent 也已经声明在了 @NgModule.declarations 数组中。
+
+content_copy
+declarations: [
+  AppComponent,
+  HeroesComponent
+],
+注意 AppModule 声明了应用中的所有组件，AppComponent 和 HeroesComponent。
+
