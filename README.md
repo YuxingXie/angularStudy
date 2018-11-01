@@ -384,3 +384,130 @@ heroes 就是来自 HeroesComponent 类的列表。
 ```text
 不要忘了 ngFor 前面的星号（*），它是该语法中的关键部分。
 ```
+### 给英雄们“美容”
+```text
+@Component 元数据中指定的样式和样式表都是局限于该组件的。 heroes.component.css 中的样式只会作用于 HeroesComponent，
+既不会影响到组件外的 HTML，也不会影响到其它组件中的 HTML。
+```
+而位于src目录中的styles.css则影响全局（猜测，未验证，虽然验证很容易，但我就是这么懒）。
+
+其它略
+
+### 主从结构
+
+当用户在主列表中点击一个英雄时，该组件应该在页面底部显示所选英雄的详情。
+
+在本节，你将监听英雄条目的点击事件，并更新英雄的详情。
+
+#### 添加 click 事件绑定
+再往  &lt;li&gt; 元素上插入一句点击事件的绑定代码：
+
+heroes.component.html (template excerpt)
+```text
+  <li *ngFor="let hero of heroes" (click)="onSelect(hero)">
+```
+这是 Angular 事件绑定 语法的例子。
+
+click 外面的圆括号会让 Angular 监听这个 &lt;li&gt;元素的 click 事件。 当用户点击 &lt;li&gt; 时，Angular 就会执行表达式 onSelect(hero)。
+
+onSelect() 是 HeroesComponent 上的一个方法，你很快就要写它。 Angular 会把所点击的 &lt;li&gt;上的 hero 对象传给它，这个 hero 也就是前面在 *ngFor 表达式中定义的那个。
+#### 添加 click 事件处理器
+把该组件的 hero 属性改名为 selectedHero，但不要为它赋值。 因为应用刚刚启动时并没有所选英雄。
+
+添加如下 onSelect() 方法，它会把模板中被点击的英雄赋值给组件的 selectedHero 属性。
+
+src/app/heroes/heroes.component.ts (onSelect)
+```typescript
+selectedHero: Hero;
+onSelect(hero: Hero): void {
+  this.selectedHero = hero;
+}
+```
+#### 修改详情模板
+该模板引用的仍然是老的 hero 属性，但它已经不存在了。 把 hero 改名为 selectedHero。
+
+heroes.component.html (selected hero details)
+```html
+<h2>{{selectedHero.name | uppercase}} Details</h2>
+<div><span>id: </span>{{selectedHero.id}}</div>
+<div>
+  <label>name:
+    <input [(ngModel)]="selectedHero.name" placeholder="name">
+  </label>
+</div>
+```
+使用 *ngIf 隐藏空白的详情
+刷新浏览器，应用挂了。
+
+打开浏览器的开发者工具，它的控制台中显示出如下错误信息：
+
+```text
+HeroesComponent.html:3 ERROR TypeError: Cannot read property 'name' of undefined
+```
+现在，从列表中随便点击一个条目。 应用又正常了。 英雄们显示在列表中，并且所点英雄的详情也显示在了页面的下方。
+
+##### 怎么回事？
+
+当应用启动时，selectedHero 是 undefined，设计如此。
+
+但模板中的绑定表达式引用了 selectedHero 的属性（表达式为 {{selectedHero.name}}），这必然会失败，因为你还没选过英雄呢。
+
+##### 修复
+该组件应该只有当 selectedHero 存在时才显示所选英雄的详情。
+
+把显示英雄详情的 HTML 包裹在一个 $lt;div$gt; 中。 并且为这个 div 添加 Angular 的 *ngIf 指令，
+把它的值设置为 selectedHero。
+```text
+不要忘了 ngIf 前面的星号（*），它是该语法中的关键部分。
+```
+
+src/app/heroes/heroes.component.html (*ngIf)
+```html
+<div *ngIf="selectedHero">
+
+  <h2>{{selectedHero.name | uppercase}} Details</h2>
+  <div><span>id: </span>{{selectedHero.id}}</div>
+  <div>
+    <label>name:
+      <input [(ngModel)]="selectedHero.name" placeholder="name">
+    </label>
+  </div>
+
+</div>
+```
+
+浏览器刷新之后，英雄名字的列表又出现了。 详情部分仍然是空。 点击一个英雄，它的详情就出现了。
+
+##### 为什么改好了？
+当 selectedHero 为 undefined 时，ngIf 从 DOM 中移除了英雄详情。因此也就不用担心 selectedHero 的绑定了。
+
+当用户选择一个英雄时，selectedHero 也就有了值，并且 ngIf 把英雄的详情放回到 DOM 中。
+
+#### 给所选英雄添加样式
+所有的 $lt;li$gt; 元素看起来都是一样的，因此很难从列表中识别出所选英雄。
+
+如果用户点击了“Magneta”，这个英雄应该用一个略有不同的背景色显示出来。
+
+所选英雄的颜色来自于你前面添加的样式中的 CSS 类 .selected。 所以你只要在用户点击一个$lt;li$gt; 时把 .selected 类应用到该元素上就可以了。
+
+Angular 的 CSS 类绑定机制让根据条件添加或移除一个 CSS 类变得很容易。 只要把 [class.some-css-class]="some-condition"
+添加到你要施加样式的元素上就可以了。
+
+在 HeroesComponent 模板中的 $lt;li$gt; 元素上添加 [class.selected] 绑定，代码如下：
+
+heroes.component.html (toggle the 'selected' CSS class)
+```text
+[class.selected]="hero === selectedHero"
+```
+如果当前行的英雄和 selectedHero 相同，Angular 就会添加 CSS 类 selected，否则就会移除它。
+
+最终的 $lt;li$gt; 是这样的：
+
+heroes.component.html (list item hero)
+```html
+<li *ngFor="let hero of heroes"
+  [class.selected]="hero === selectedHero"
+  (click)="onSelect(hero)">
+  <span class="badge">{{hero.id}}</span> {{hero.name}}
+</li>
+```
