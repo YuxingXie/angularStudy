@@ -1377,3 +1377,255 @@ src/app/components/app/app.component.html
 刷新浏览器，你就能通过点击这些链接在这两个视图之间自由导航了。
 
 ### 5.4.导航到英雄详情
+
+HeroDetailComponent 可以显示所选英雄的详情。 此刻，HeroDetailsComponent 只能在 HeroesComponent 的底部看到。
+
+用户应该能通过三种途径看到这些详情。
+
+1. 通过在仪表盘中点击某个英雄。
+2. 通过在英雄列表中点击某个英雄。
+3. 通过把一个“深链接” URL 粘贴到浏览器的地址栏中来指定要显示的英雄。
+
+在这一节，你将能导航到 HeroDetailComponent，并把它从 HeroesComponent 中解放出来。
+
+#### 5.4.1.从 HeroesComponent 中删除英雄详情
+
+当用户在 HeroesComponent 中点击某个英雄条目时，应用应该能导航到 HeroDetailComponent，从英雄列表视图切换到英雄详情视图。 英雄列表视图将不再显示，而英雄详情视图要显示出来。
+
+打开 HeroesComponent 的模板文件（src/app/components/heroes/heroes.component.html），并从底部删除 <app-hero-detail> 元素。
+
+目前，点击某个英雄条目还没有反应。不过当你启用了到 HeroDetailComponent 的路由之后，很快就能修复它。
+
+#### 5.4.2.添加英雄详情视图
+
+要导航到 id 为 11 的英雄的详情视图，类似于 ~/detail/11 的 URL 将是一个不错的 URL。
+
+打开 AppRoutingModule 并导入 HeroDetailComponent。
+```typescript
+import { HeroDetailComponent } from 'app/components/hero-detail/hero-detail.component';
+```
+然后把一个参数化路由添加到 AppRoutingModule.routes 数组中，它要匹配指向英雄详情视图的路径。
+
+```typescript
+{ path: 'detail/:id', component: HeroDetailComponent },
+```
+path 中的冒号（:）表示 :id 是一个占位符，它表示某个特定英雄的 id。
+
+此刻，应用中的所有路由都就绪了。
+
+#### 5.4.3.DashboardComponent 中的英雄链接
+
+此刻，DashboardComponent 中的英雄连接还没有反应。
+
+路由器已经有一个指向 HeroDetailComponent 的路由了， 修改仪表盘中的英雄连接，让它们通过参数化的英雄详情路由进行导航。
+
+src/app/components/dashboard/dashboard.component.html (hero links)
+```html
+<a *ngFor="let hero of heroes" class="col-1-4"
+    routerLink="/detail/{{hero.id}}">
+  <div class="module hero">
+    <h4>{{hero.name}}</h4>
+  </div>
+</a>
+```
+
+你正在 *ngFor 复写器中使用 Angular 的插值表达式来把当前迭代的 hero.id 插入到每个 routerLink 中。
+
+#### 5.4.4.HeroesComponent 中的英雄链接
+
+HeroesComponent 中的这些英雄条目都是 &lt;li&gt; 元素，它们的点击事件都绑定到了组件的 onSelect() 方法中。
+
+src/app/components/heroes/heroes.component.html (list with onSelect)
+```html
+<ul class="heroes">
+  <li *ngFor="let hero of heroes"
+    [class.selected]="hero === selectedHero"
+    (click)="onSelect(hero)">
+    <span class="badge">{{hero.id}}</span> {{hero.name}}
+  </li>
+</ul>
+```
+
+清理 <li>，只保留它的 *ngFor，把徽章（<badge>）和名字包裹进一个 <a> 元素中， 并且像仪表盘的模板中那样为这个 <a> 元素添加一个 routerLink 属性。
+
+src/app/components/heroes/heroes.component.html  (list with links)
+```html
+<ul class="heroes">
+  <li *ngFor="let hero of heroes">
+    <a routerLink="/detail/{{hero.id}}">
+      <span class="badge">{{hero.id}}</span> {{hero.name}}
+    </a>
+  </li>
+</ul>
+```
+修改私有样式表（heroes.component.css）
+```css
+/* HeroesComponent's private CSS styles */
+.heroes {
+  margin: 0 0 2em 0;
+  list-style-type: none;
+  padding: 0;
+  width: 15em;
+}
+.heroes li {
+  position: relative;
+  cursor: pointer;
+  background-color: #EEE;
+  margin: .5em;
+  padding: .3em 0;
+  height: 1.6em;
+  border-radius: 4px;
+}
+ 
+.heroes li:hover {
+  color: #607D8B;
+  background-color: #DDD;
+  left: .1em;
+}
+ 
+.heroes a {
+  color: #888;
+  text-decoration: none;
+  position: relative;
+  display: block;
+  width: 250px;
+}
+ 
+.heroes a:hover {
+  color:#607D8B;
+}
+ 
+.heroes .badge {
+  display: inline-block;
+  font-size: small;
+  color: white;
+  padding: 0.8em 0.7em 0 0.7em;
+  background-color: #607D8B;
+  line-height: 1em;
+  position: relative;
+  left: -1px;
+  top: -4px;
+  height: 1.8em;
+  min-width: 16px;
+  text-align: right;
+  margin-right: .8em;
+  border-radius: 4px 0 0 4px;
+}
+```
+
+移除 HeroesComponent中的 onSelect() 方法和 selectedHero 属性。
+
+
+### 5.5.支持路由的 HeroDetailComponent
+
+以前，父组件 HeroesComponent 会设置 HeroDetailComponent.hero 属性，然后 HeroDetailComponent 就会显示这个英雄。
+
+HeroesComponent 已经不会再那么做了。 现在，当路由器会在响应形如 ~/detail/11 的 URL 时创建 HeroDetailComponent。
+
+HeroDetailComponent 需要从一种新的途径获取要显示的英雄。
+
+* 获取创建本组件的路由，
+* 从这个路由中提取出 id
+* 通过 HeroService 从服务器上获取具有这个 id 的英雄数据。
+
+先添加下列导入语句：
+```typescript
+import { ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
+import { HeroService } from 'app/services/hero.service';
+//还要记得providers哦！
+```
+
+然后把 ActivatedRoute、HeroService 和 Location 服务注入到构造函数中，将它们的值保存到私有变量里：
+
+```typescript
+constructor(
+  private route: ActivatedRoute,
+  private heroService: HeroService,
+  private location: Location
+) {}
+```
+* ActivatedRoute 保存着到这个 HeroDetailComponent 实例的路由信息。 这个组件对从 URL 中提取的路由参数感兴趣。 其中的 id 参数就是要显示的英雄的 id。
+
+* HeroService 从远端服务器获取英雄数据，本组件将使用它来获取要显示的英雄。
+
+* location 是一个 Angular 的服务，用来与浏览器打交道。 稍后，你就会使用它来导航回上一个视图。
+
+#### 5.5.1.从路由参数中提取 id
+
+在 ngOnInit() 生命周期钩子 中调用 getHero()，代码如下：
+
+```typescript
+ngOnInit(): void {
+  this.getHero();
+}
+```
+
+
+getHero(): void {
+  const id = +this.route.snapshot.paramMap.get('id');
+  this.heroService.getHero(id)
+    .subscribe(hero => this.hero = hero);
+}
+route.snapshot 是一个路由信息的静态快照，抓取自组件刚刚创建完毕之后。
+
+paramMap 是一个从 URL 中提取的路由参数值的字典。 "id" 对应的值就是要获取的英雄的 id。
+
+路由参数总会是字符串。 JavaScript 的 (+) 操作符会把字符串转换成数字，英雄的 id 就是数字类型。
+
+刷新浏览器，应用挂了。出现一个编译错误，因为 HeroService 没有一个名叫 getHero() 的方法。 这就添加它。
+
+#### 5.5.2.添加 HeroService.getHero()
+
+添加 HeroService，并添加如下的 getHero() 方法
+
+src/app/services/hero.service.ts (getHero)
+```typescript
+getHero(id: number): Observable<Hero> {
+  // TODO: send the message _after_ fetching the hero
+  this.messageService.add(`HeroService: fetched hero id=${id}`);
+  return of(HEROES.find(hero => hero.id === id));
+}
+```
+```text
+注意，反引号 ( ` ) 用于定义 JavaScript 的 模板字符串字面量，以便嵌入 id。
+
+还有HEROES.find是一个JavaScript数组方法。
+```
+
+像 getHeroes() 一样，getHero() 也有一个异步函数签名。 它用 RxJS 的 of() 函数返回一个 Observable 形式的模拟英雄数据。
+
+你将来可以用一个真实的 Http 请求来重新实现 getHero()，而不用修改调用了它的 HeroDetailComponent。
+
+试试看
+
+刷新浏览器，应用又恢复正常了。 你可以在仪表盘或英雄列表中点击一个英雄来导航到该英雄的详情视图。
+
+如果你在浏览器的地址栏中粘贴了 localhost:4200/detail/11，路由器也会导航到 id: 11 的英雄（"Mr. Nice"）的详情视图。
+
+#### 5.5.3.回到原路
+
+通过点击浏览器的后退按钮，你可以回到英雄列表或仪表盘视图，这取决于你从哪里进入的详情视图。
+
+如果能在 HeroDetail 视图中也有这么一个按钮就更好了。
+
+把一个后退按钮添加到组件模板的底部，并且把它绑定到组件的 goBack() 方法。
+
+hero-detail.component.html (back button)
+```html
+<button (click)="goBack()">go back</button>
+```
+在组件类中添加一个 goBack() 方法，利用你以前注入的 Location 服务在浏览器的历史栈中后退一步。
+
+hero-detail.component.ts (goBack)
+```typescript
+goBack(): void {
+  this.location.back();
+}
+```
+
+刷新浏览器，并开始点击。 用户能在应用中导航：从仪表盘到英雄详情再回来，从英雄列表到 mini 版英雄详情到英雄详情，再回到英雄列表。
+
+你已经满足了在本章开头设定的所有导航需求。
+
+## 6.HTTP
