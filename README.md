@@ -865,8 +865,14 @@ import { of } from 'rxjs/Observable/of';
 ```
 把 getHeroes 方法改成这样：
 
-content_copy
+```typescript
 getHeroes(): Observable<Hero[]> {
   return of(HEROES);
 }
+```
+
 of(HEROES) 会返回一个 Observable<Hero[]>，它会发出单个值，这个值就是这些模拟英雄的数组。
+
+```text
+在 HTTP 教程中，你将会调用 HttpClient.get<Hero[]>() 它也同样返回一个 Observable<Hero[]>，它也会发出单个值，这个值就是来自 HTTP 响应体中的英雄数组。
+```
