@@ -3,6 +3,8 @@
 
 这次学习的依据是angular中文网 https://www.angular.cn/guide/quickstart
 
+学习笔记中重要的领悟或经验会用加粗字体标记。
+
 
 # 快速上手
 
@@ -163,7 +165,7 @@ export class Hero {
 
 ```
 
-创建成功！所以可以把组件放到指定的文件夹内。现在把heros组件移到components文件夹内，然而报错,一个是import hero时报错，这个改完还有一个错：
+创建成功！所以**可以把组件放到指定的文件夹内**。现在把heros组件移到components文件夹内，然而报错,一个是import hero时报错，这个改完还有一个错：
 ```text
 ng:component 'HeroComponent' is not included in a module and will not be available inside a template.Consider adding it to a ngModule declaration.
 ```
@@ -267,9 +269,9 @@ imports: [
 
 注意：
 
-1. 并不需要把FormsModule加入AppModule的@declaration中 ,@declaration应该时自己声明的组件，而FormsModule是内置组件，并不需要声明。
+1. **并不需要把FormsModule加入AppModule的@declaration中 ,@declaration应该时自己声明的组件，而FormsModule是内置组件，并不需要声明。**
 
-2. 记住双向绑定[{ngModel}]='property'和插值表达式{{property}}的语法。
+2. **记住双向绑定[{ngModel}]='property'和插值表达式{{property}}的语法。**
 
 #### 声明 HeroesComponent
 
@@ -281,15 +283,18 @@ imports: [
 
 打开 src/app/app.module.ts 你就会发现 HeroesComponent 已经在顶部导入过了。
 
-content_copy
+```typescript
 import { HeroesComponent } from './heroes/heroes.component';
+```
 HeroesComponent 也已经声明在了 @NgModule.declarations 数组中。
 
-content_copy
+```typescript
 declarations: [
   AppComponent,
   HeroesComponent
 ],
+```
+
 注意 AppModule 声明了应用中的所有组件，AppComponent 和 HeroesComponent。
 
 ## 2.显示英雄列表
@@ -301,7 +306,7 @@ declarations: [
 
 最终，你会从远端的数据服务器获取它。 不过目前，你要先创建一些模拟的英雄数据，并假装它们是从服务器上取到的。
 
-在 src/app/mock/ 文件夹中创建一个名叫 mock-heroes.ts 的文件。 定义一个包含十个英雄的常量数组 HEROES，并导出它。
+在 **src/app/mock/** 文件夹中创建一个名叫 mock-heroes.ts 的文件。 定义一个包含十个英雄的常量数组 HEROES，并导出它。
 该文件是这样的。
 
 src/app/mock/mock-heroes.ts:
@@ -620,3 +625,248 @@ slaveComponentProperty的值从而改写主组件mainComponentProperty的值。
 本节课的重构完成之后，HeroesComponent 变得更精简，并且聚焦于为它的视图提供支持。这也让它更容易使用模拟服务进行单元测试。
 
 ### 4.1.为什么需要服务
+
+java程序员都知道，我们需要一个类提供服务时，我们不是实例化一个类，而是注入一个类，这叫做依赖注入。在angular框架中，有一个强大的理由使用依赖注入，即数据获取
+的服务类的使用。
+
+服务是在多个“互相不知道”的类之间共享信息的好办法。 你将创建一个 MessageService，并且把它注入到两个地方：
+
+* HeroService 中，它会使用该服务发送消息。
+* MessagesComponent 中，它会显示其中的消息。
+
+### 4.2.Create the HeroService
+
+使用 Angular CLI 创建一个名叫 hero 的服务。
+```text
+ng generate service services/hero
+
+```
+该命令会在 src/app/servies/hero.service.ts 中生成 HeroService 类的骨架。 HeroService 类的代码如下：
+
+src/app/services/hero.service.ts (new service)
+```typescript
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root',//注：我使用的angular版本并没有生成这一句，实际上我也不会使用这一句，除非必要
+})
+export class HeroService {
+
+  constructor() { }
+
+}
+```
+#### 4.2.1.@Injectable() 服务
+
+用我们java程序员的话说，它表示这个类是一个ioc bean，可以用来注入。
+
+#### 4.2.2.获取英雄数据
+           
+HeroService 可以从任何地方获取数据：Web 服务、本地存储（LocalStorage）或一个模拟的数据源。
+
+从组件中移除数据访问逻辑，意味着将来任何时候你都可以改变目前的实现方式，而不用改动任何组件。 这些组件不需要了解该服务的内部实现。
+
+这节课中的实现仍然会提供模拟的英雄列表。
+
+导入 Hero 和 HEROES。
+```typescript
+import { Hero } from 'app/entities/hero';
+import { HEROES } from 'app/mock/mock-heroes';
+```
+注：导入后编译器报错，但我认为是编译器错了，继续往下。
+
+添加一个 getHeroes 方法，让它返回模拟的英雄列表。
+
+```typescript
+getHeroes(): Hero[] {
+  return HEROES;
+}
+```
+### 4.3.提供（provide） HeroService
+
+在要求 Angular 把 HeroService 注入到 HeroesComponent 之前，你必须先把这个服务提供给依赖注入系统。稍后你就要这么做。 你可以通过注册提供商来做到这一点。
+提供商用来创建和交付服务，在这个例子中，它会对 HeroService 类进行实例化，以提供该服务。
+
+作为Java程序员，这一步我想应该类似于让IOC框架检测到HeroService，并实例化它。
+
+现在，你需要确保 HeroService 已经作为该服务的提供商进行过注册。 你要用一个注入器注册它。注入器就是一个对象，负责在需要时选取和注入该提供商。
+
+默认情况下，Angular CLI 命令 ng generate service 会通过给 @Injectable 装饰器添加元数据的形式，为该服务把提供商注册到根注入器上。
+
+如果你看看 HeroService 紧前面的 @Injectable() 语句定义，就会发现 providedIn 元数据的值是 'root'：
+
+```typescript
+@Injectable({
+  providedIn: 'root',//到https://www.angular.cn/guide/providers看了一下提供商的含义，我认为，这句不写表示默认提供商是root,所以我决定还是不加上这句
+})
+```
+
+提前说一句,这里的providedIn和后面要出现的providers字面意思分别是"被提供到"和"提供者"，根据字面的理解，providedIn的值表示一个提供商，这里是'root'提供商，
+可以理解为大众提供商，为广大组件服务。providers表示是服务的接受者，接受了哪些提供商的服务，一般组件都可以接受服务，当然服务也可以接受别的服务。
+
+当你在顶层提供该服务时，Angular 就会为 HeroService 创建一个单一的、共享的实例，并把它注入到任何想要它的类上。 在 @Injectable 元数据中注册该提供商，
+还能让 Angular 可以通过移除那些完全没有用过的服务，来进行优化。
+
+现在 HeroService 已经准备好插入到 HeroesComponent 中了。
+
+### 4.3.修改 HeroesComponent
+
+打开 HeroesComponent 类文件。
+
+删除 HEROES 的导入语句，因为你以后不会再用它了。 转而导入 HeroService。
+
+src/app/heroes/heroes.component.ts (import HeroService)
+```typescript
+import { HeroService } from 'app/services/hero.service';
+
+```
+把 heroes 属性的定义改为一句简单的声明。
+
+```typescript
+heroes: Hero[];
+```
+
+#### 4.3.1.注入 HeroService
+
+往构造函数中添加一个私有的 heroService，其类型为 HeroService。
+
+```typescript
+constructor(private heroService: HeroService) { }
+```
+java程序员再熟悉不过的构造器注入，不过有点奇怪，构造器方法参数中出现了private修饰符，少了声明一个私有属性heroService以及赋值语句
+this.heroService=heroService。这是typeScript语句的独特之处，接下来马上就有说明。
+
+这个参数同时做了两件事：1. 声明了一个私有 heroService 属性，2. 把它标记为一个 HeroService 的注入点。
+
+当 Angular 创建 HeroesComponent 时，依赖注入系统就会把这个 heroService 参数设置为 HeroService 的单例对象。
+
+#### 4.3.2.添加 getHeroes()
+
+创建一个函数，以从服务中获取这些英雄数据。
+
+```typescript
+getHeroes(): void {
+  this.heroes = this.heroService.getHeroes();
+}
+```
+#### 4.3.3.在 ngOnInit 中调用它
+你固然可以在构造函数中调用 getHeroes()，但那不是最佳实践。
+
+让构造函数保持简单，只做初始化操作，比如把构造函数的参数赋值给属性。 构造函数不应该做任何事。 它肯定不能调用某个函数来向远端服务（比如真实的数据服务）发起 HTTP 请求。
+
+而是选择在 ngOnInit 生命周期钩子中调用 getHeroes()，之后交由 Angular 处理，它会在构造出 HeroesComponent 的实例之后的某个合适的时机调用 ngOnInit。
+
+```typescript
+ngOnInit() {
+  this.getHeroes();
+}
+```
+
+#### 4.3.4.查看运行效果
+           
+刷新浏览器，没有如书中所说的正常运行，程序报错：
+
+```text
+ERROR Error: StaticInjectorError(AppModule)[HeroesComponent -> HeroService]: 
+  StaticInjectorError(Platform: core)[HeroesComponent -> HeroService]: 
+    NullInjectorError: No provider for HeroService!
+```
+HeroesComponent所依赖的HeroService不能注入，没有提供者！看来省略的那句providedIn不能省略。加上,情况有点糟糕：
+```text
+ERROR in src/app/services/hero.service.ts(4,2): error TS2554: Expected 0 arguments, but got 1.
+```
+现在@Injectable不接受任何元数据参数！！！
+
+网上找了一下，原来要在被注入的组件元数据中加入providers: [XXXService],go now!
+src/app/components/heroes/heroes.component.ts
+```typescript
+@Component({
+  selector: 'app-heroes',
+  templateUrl: './heroes.component.html',
+  styleUrls: ['./heroes.component.css'],
+  providers: [HeroService]
+})
+```
+仍然报错，不过原因很简单：
+```typescript
+selectedHero: Hero = this.heroes[0];
+```
+把这个赋值的逻辑放到ngOnInit()中应该可以解决。
+
+src/app/components/heroes/heroes.component.ts
+```typescript
+import { Component, OnInit } from '@angular/core';
+import { Hero } from 'app/entities/hero';
+// import { HEROES } from 'app/mock/mock-heroes';
+import { HeroService } from 'app/services/hero.service';
+
+@Component({
+  selector: 'app-heroes',
+  templateUrl: './heroes.component.html',
+  styleUrls: ['./heroes.component.css'],
+  providers: [HeroService]
+})
+export class HeroesComponent implements OnInit {
+  heroes: Hero[];
+  selectedHero: Hero ;
+  constructor(private heroService: HeroService) { }
+
+  onSelect(hero: Hero): void {
+    this.selectedHero = hero;
+  }
+  getHeroes(): void {
+    this.heroes = this.heroService.getHeroes();
+  }
+
+  ngOnInit() {
+    this.getHeroes();
+    this.selectedHero = this.heroes[0];
+  }
+
+}
+```
+果然，程序又活蹦乱跳了。不过我没想到的是，官方维护的中文网也会落后版本。
+
+### 4.4.可观察（Observable）的数据
+HeroService.getHeroes() 的函数签名是同步的，它所隐含的假设是 HeroService 总是能同步获取英雄列表数据。 而 HeroesComponent 也同样假设能同步取到 getHeroes() 的结果。
+
+```typescript
+this.heroes = this.heroService.getHeroes();
+```
+这在真实的应用中几乎是不可能的。 现在能这么做，只是因为目前该服务返回的是模拟数据。 不过很快，该应用就要从远端服务器获取英雄数据了，而那天生就是异步操作。
+
+HeroService 必须等服务器给出响应， 而 getHeroes() 不能立即返回英雄数据， 浏览器也不会在该服务等待期间停止响应。
+
+HeroService.getHeroes() 必须具有某种形式的异步函数签名。
+
+它可以使用回调函数，可以返回 Promise（承诺），也可以返回 Observable（可观察对象）。
+
+这节课，HeroService.getHeroes() 将会返回 Observable，因为它最终会使用 Angular 的 HttpClient.get 方法来获取英雄数据，而 HttpClient.get() 会返回 Observable。
+
+#### 4.4.1.可观察对象版本的 HeroService
+
+Observable 是 RxJS 库中的一个关键类。
+
+看了一下，RxJS是Reactive的扩展库，但不知道Reactive是干什么的，查了一下，它是一种响应式编程方式。
+
+在稍后的 HTTP 教程中，你就会知道 Angular HttpClient 的方法会返回 RxJS 的 Observable。 这节课，你将使用 RxJS 的 of() 函数来模拟从服务器返回数据。
+
+打开 HeroService 文件，并从 RxJS 中导入 Observable 和 of 符号。
+
+src/app/services/hero.service.ts (Observable imports)
+```typescript
+import { Observable, of } from 'rxjs';
+
+```
+**rxjs已经被加入引入黑名单了，要改成这样**：
+```typescript
+import { Observable } from 'rxjs/Observable';
+import { of } from 'rxjs/Observable/of';
+```
+把 getHeroes 方法改成这样：
+
+content_copy
+getHeroes(): Observable<Hero[]> {
+  return of(HEROES);
+}
+of(HEROES) 会返回一个 Observable<Hero[]>，它会发出单个值，这个值就是这些模拟英雄的数组。
