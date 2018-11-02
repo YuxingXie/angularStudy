@@ -1653,3 +1653,219 @@ src/app/app.module.ts (Http Client import)
 import { HttpClientModule } from '@angular/common/http';
 ```
 * 把它加入 @NgModule.imports 数组。
+
+### 6.2.模拟数据服务器
+不了，作为java程序员，我应该用真正的服务器。与本课程配套的java服务器项目地址是：
+https://github.com/YuxingXie/aes-base64.git
+ ，其实这个项目不是专为本课程准备的，不过不想新建一个java web项目了，能用就好。
+ 
+ 服务器端口是8888.
+ 
+ 如果您不幸不是java程序员，那么还是看angular中文网教程吧。
+ 
+ ### 6.3.英雄与 HTTP
+导入一些所需的 HTTP 符号：
+
+hero.service.ts (import HTTP symbols)
+```typescript
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+```
+把 HttpClient 注入到构造函数中一个名叫 http 的私有属性中。
+
+```typescript
+constructor(
+  private http: HttpClient,
+  private messageService: MessageService) { }
+```
+
+保留对 MessageService 的注入。你将会频繁调用它，因此请把它包裹进一个私有的 log 方法中。
+```typescript
+/** Log a HeroService message with the MessageService */
+private log(message: string) {
+  this.messageService.add(`HeroService: ${message}`);
+}
+```
+
+定义服务器上英雄数据资源的访问地址heroesURL：
+```typescript
+private heroesUrl = 'http://localhost:8888/api/heroes';
+```
+#### 6.3.1.通过 HttpClient 获取英雄
+当前的 HeroService.getHeroes() 使用 RxJS 的 of() 函数来把模拟英雄数据返回为 Observable<Hero[]> 格式。
+
+hero.service.ts (getHeroes with RxJs 'of()')
+```typescript
+getHeroes(): Observable<Hero[]> {
+  return of(HEROES);
+}
+```
+
+把该方法转换成使用 HttpClient 的
+
+```typescript
+getHeroes (): Observable<Hero[]> {
+  return this.http.get<Hero[]>(this.heroesUrl)
+}
+```
+/** GET heroes from the server */
+
+刷新浏览器后，英雄数据就会从模拟服务器被成功读取。
+
+#### 6.3.2.Http 方法返回单个值
+所有的 HttpClient 方法都会返回某个值的 RxJS Observable。
+
+HTTP 是一个请求/响应式协议。你发起请求，它返回单个的响应。
+
+通常，Observable 可以在一段时间内返回多个值。 但来自 HttpClient 的 Observable 总是发出一个值，然后结束，再也不会发出其它值。
+
+具体到这次 HttpClient.get 调用，它返回一个 Observable<Hero[]>，顾名思义就是“一个英雄数组的可观察对象”。在实践中，它也只会返回一个英雄数组。
+
+#### 6.3.3.HttpClient.get 返回响应数据
+HttpClient.get 默认情况下把响应体当做无类型的 JSON 对象进行返回。 如果指定了可选的模板类型 <Hero[]>，就会给返回你一个类型化的对象。
+
+JSON 数据的具体形态是由服务器的数据 API 决定的。 英雄指南的数据 API 会把英雄数据作为一个数组进行返回。
+
+#### 6.3.4.错误处理
+凡事皆会出错，特别是当你从远端服务器获取数据的时候。 HeroService.getHeroes() 方法应该捕获错误，并做适当的处理。
+
+要捕获错误，你就要使用 RxJS 的 catchError() 操作符来建立对 Observable 结果的处理管道（pipe）。
+
+从 rxjs/operators 中导入 catchError 符号，以及你稍后将会用到的其它操作符。
+
+```typescript
+import { catchError, map, tap } from 'rxjs/operators';
+```
+现在，使用 .pipe() 方法来扩展 Observable 的结果，并给它一个 catchError() 操作符。
+
+```typescript
+getHeroes (): Observable<Hero[]> {
+  return this.http.get<Hero[]>(this.heroesUrl)
+    .pipe(
+      catchError(this.handleError('getHeroes', []))
+    );
+}
+```
+catchError() 操作符会拦截失败的 Observable。 它把错误对象传给错误处理器，错误处理器会处理这个错误。
+
+下面的 handleError() 方法会报告这个错误，并返回一个无害的结果（安全值），以便应用能正常工作。
+##### handleError
+下面这个 handleError() 将会在很多 HeroService 的方法之间共享，所以要把它通用化，以支持这些彼此不同的需求。
+
+它不再直接处理这些错误，而是返回给 catchError 返回一个错误处理函数。还要用操作名和出错时要返回的安全值来对这个错误处理函数进行配置。
+```typescript
+/**
+ * Handle Http operation that failed.
+ * Let the app continue.
+ * @param operation - name of the operation that failed
+ * @param result - optional value to return as the observable result
+ */
+private handleError<T> (operation = 'operation', result?: T) {
+  return (error: any): Observable<T> => {
+ 
+    // TODO: send the error to remote logging infrastructure
+    console.error(error); // log to console instead
+ 
+    // TODO: better job of transforming error for user consumption
+    this.log(`${operation} failed: ${error.message}`);
+ 
+    // Let the app keep running by returning an empty result.
+    return of(result as T);
+  };
+}
+```
+在控制台中汇报了这个错误之后，这个处理器会汇报一个用户友好的消息，并给应用返回一个安全值，让它继续工作。
+
+因为每个服务方法都会返回不同类型的 Observable 结果，因此 handleError() 也需要一个类型参数，以便它返回一个此类型的安全值，正如应用所期望的那样。
+#### 6.3.5.窥探 Observable
+HeroService 的方法将会窥探 Observable 的数据流，并通过 log() 函数往页面底部发送一条消息。
+
+它们可以使用 RxJS 的 tap 操作符来实现，该操作符会查看 Observable 中的值，使用那些值做一些事情，并且把它们传出来。 这种 tap 回调不会改变这些值本身。
+
+下面是 getHeroes 的最终版本，它使用 tap 来记录各种操作。
+```typescript
+/** GET heroes from the server */
+getHeroes (): Observable<Hero[]> {
+  return this.http.get<Hero[]>(this.heroesUrl)
+    .pipe(
+      tap(heroes => this.log('fetched heroes')),
+      catchError(this.handleError('getHeroes', []))
+    );
+}
+```
+#### 6.3.6.通过 id 获取英雄
+大多数的 Web API 都支持以 :baseURL/:id 的形式根据 id 进行获取。
+
+这里的 baseURL 就是在 英雄列表与 HTTP 部分定义过的 heroesURL（api/heroes）。而 id 则是你要获取的英雄的编号，比如，api/heroes/11。 添加一个 HeroService.getHero() 方法，以发起该请求：
+
+hero.service.ts
+```typescript
+/** GET hero by id. Will 404 if id not found */
+getHero(id: number): Observable<Hero> {
+  const url = `${this.heroesUrl}/${id}`;
+  return this.http.get<Hero>(url).pipe(
+    tap(_ => this.log(`fetched hero id=${id}`)),
+    catchError(this.handleError<Hero>(`getHero id=${id}`))
+  );
+}
+```
+这里和 getHeroes() 相比有三个显著的差异。
+
+* 它使用想获取的英雄的 id 构建了一个请求 URL。
+
+* 服务器应该使用单个英雄作为回应，而不是一个英雄数组。
+
+* 所以，getHero 会返回 Observable<Hero>（“一个可观察的单个英雄对象”），而不是一个可观察的英雄对象数组。
+
+### 6.4.修改英雄
+在英雄详情视图中编辑英雄的名字。 随着输入，英雄的名字也跟着在页面顶部的标题区更新了。 但是当你点击“后退”按钮时，这些修改都丢失了。
+
+如果你希望保留这些修改，就要把它们写回到服务器。
+
+在英雄详情模板的底部添加一个保存按钮，它绑定了一个 click 事件，事件绑定会调用组件中一个名叫 save() 的新方法：
+
+hero-detail.component.html (save)
+```typescript
+<button (click)="save()">save</button>
+```
+添加如下的 save() 方法，它使用英雄服务中的 updateHero() 方法来保存对英雄名字的修改，然后导航回前一个视图。
+
+hero-detail.component.ts (save)
+```typescript
+save(): void {
+   this.heroService.updateHero(this.hero)
+     .subscribe(() => this.goBack());
+ }
+```
+#### 6.4.1.添加 HeroService.updateHero()
+updateHero() 的总体结构和 getHeroes() 很相似，但它会使用 http.put() 来把修改后的英雄保存到服务器上。
+
+hero.service.ts (update)
+```typescript
+/** PUT: update the hero on the server */
+updateHero (hero: Hero): Observable<any> {
+  return this.http.put(this.heroesUrl, hero, httpOptions).pipe(
+    tap(_ => this.log(`updated hero id=${hero.id}`)),
+    catchError(this.handleError<any>('updateHero'))
+  );
+}
+```
+HttpClient.put() 方法接受三个参数
+
+* URL 地址
+
+* 要修改的数据（这里就是修改后的英雄）
+
+* 选项
+
+URL 没变。英雄 Web API 通过英雄对象的 id 就可以知道要修改哪个英雄。
+
+英雄 Web API 期待在保存时的请求中有一个特殊的头。 这个头是在 HeroService 的 httpOptions 常量中定义的。
+
+hero.service.ts
+```typescript
+const httpOptions = {
+  headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+};
+```
+
+刷新浏览器，修改英雄名，保存这些修改，然后点击“后退”按钮。 现在，改名后的英雄已经显示在列表中了。
