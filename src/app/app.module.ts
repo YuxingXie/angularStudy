@@ -10,6 +10,9 @@ import { HeroesComponent } from './components/heroes/heroes.component';
 import { TestComponentComponent } from './components/test-component/test-component.component';
 import { FormsModule } from '@angular/forms';
 import { HeroDetailComponent } from './components/hero-detail/hero-detail.component';
+import { MessagesComponent } from './components/messages/messages.component';
+import {MessageService} from './services/message.service';
+import { AppRoutingModule } from './/app-routing.module';
 
 @NgModule({
   declarations: [
@@ -19,13 +22,15 @@ import { HeroDetailComponent } from './components/hero-detail/hero-detail.compon
     UserListComponent,
     HeroesComponent,
     TestComponentComponent,
-    HeroDetailComponent
+    HeroDetailComponent,
+    MessagesComponent
   ],
   imports: [
     FormsModule,
-    BrowserModule
+    BrowserModule,
+    AppRoutingModule
   ],
-  providers: [],
+  providers: [MessageService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -876,3 +876,286 @@ of(HEROES) 会返回一个 Observable<Hero[]>，它会发出单个值，这个�
 ```text
 在 HTTP 教程中，你将会调用 HttpClient.get<Hero[]>() 它也同样返回一个 Observable<Hero[]>，它也会发出单个值，这个值就是来自 HTTP 响应体中的英雄数组。
 ```
+#### 4.4.2.在 HeroesComponent 中订阅
+HeroService.getHeroes 方法之前返回一个 Hero[]， 现在它返回的是 Observable<Hero[]>。
+
+你必须在 HeroesComponent 中也向本服务中的这种形式看齐。
+
+找到 getHeroes 方法，并且把它替换为如下代码（和前一个版本对比显示）：
+
+src/app/components/heroes/heroes.component.ts
+```typescript
+getHeroes(): void {
+  
+  // this.heroes = this.heroService.getHeroes();//Original
+  
+  this.heroes = this.heroService.getHeroes();//Observable
+}
+```
+Observable.subscribe() 是关键的差异点。
+
+上一个版本把英雄的数组赋值给了该组件的 heroes 属性。 这种赋值是同步的，这里包含的假设是服务器能立即返回英雄数组或者浏览器能在等待服务器响应时冻结界面。
+
+当 HeroService 真的向远端服务器发起请求时，这种方式就行不通了。
+
+新的版本等待 Observable 发出这个英雄数组，这可能立即发生，也可能会在几分钟之后。 然后，subscribe 函数把这个英雄数组传给这个回调函数，该函数把英雄数组赋值给组件的 heroes 属性。
+
+使用这种异步方式，当 HeroService 从远端服务器获取英雄数据时，就可以工作了。
+
+### 4.5.显示消息
+
+在这一节，你将
+
+* 添加一个 MessagesComponent，它在屏幕的底部显示应用中的消息。
+* 创建一个可注入的、全应用级别的 MessageService，用于发送要显示的消息。
+* 把 MessageService 注入到 HeroService 中。
+* 当 HeroService 成功获取了英雄数据时显示一条消息。
+
+#### 4.5.1.创建 MessagesComponent
+
+使用 CLI 创建 MessagesComponent。
+
+```text
+ng generate component components/messages
+```
+CLI 在 src/app/components/messages 中创建了组件文件，并且把 MessagesComponent 声明在了 AppModule 中。
+
+修改 AppComponent 的模板来显示所生成的 MessagesComponent：
+src/app/components/app/app.component.html
+```html
+<h1>{{title}}</h1>
+<app-heroes></app-heroes>
+<app-messages></app-messages>
+```
+你可以在页面的底部看到来自的 MessagesComponent 的默认内容。
+
+#### 4.5.2.创建 MessageService
+
+使用 CLI 在 src/app/services 中创建 MessageService。
+
+```text
+ng generate service services/message
+
+```
+
+注意：这里停一停，自己思考一下如何实现MessageService。
+
+说实话，我绞尽脑汁，抽了两根烟，还在黑板上推演，还是无法实现这么个简单的业务。如果不是我太蠢(我自信没那么蠢)，那这个必定使用了某种黑魔法。我们继续研究。
+
+打开 MessageService，并把它的内容改成这样：
+
+src/app/services/message.service.ts
+```typescript
+import { Injectable } from '@angular/core';
+ 
+@Injectable()
+export class MessageService {
+  messages: string[] = [];
+ 
+  add(message: string) {
+    this.messages.push(message);
+  }
+ 
+  clear() {
+    this.messages = [];
+  }
+}
+```
+该服务对外暴露了它的 messages 缓存，以及两个方法：add() 方法往缓存中添加一条消息，clear() 方法用于清空缓存。
+
+#### 4.5.3.把它注入到 HeroService 中
+
+重新打开 HeroService，并且导入 MessageService。
+
+/src/app/hero.service.ts (import MessageService)
+```typescript
+import { MessageService } from './message.service';
+
+```
+修改这个构造函数，添加一个私有的 messageService 属性参数。 Angular 将会在创建 HeroService 时把 MessageService 的单例注入到这个属性中。
+
+```typescript
+constructor(private messageService: MessageService) { }
+
+```
+
+说实话，这一步我思考的时候就认为行不通，因为我认为服务中不能注入服务，因为要在@Component中提供providers，服务不是组件，应该没有这个注解。现在看来，
+服务中是可以注入服务的。但是这个providers该写在哪里？或者根本不需要providers?先不管这个细节，顺着服务可以注入服务这个思路再自己思考思考。
+
+现在思路是：heroService在getHeroes方法中调用messageService.add方法，messageService注入MessageComponent中，让MessageComponent在ngOnInit方法中
+调用messageService.message属性。然而似乎仍是行不通，因为heroService.getHeroes方法是HeroesComponents在ngOnInit中调用的，执行这个方法的时候，
+说不定MessageComponent早就完成了初始化，那个时候MessageComponent从messageService中获得的messages属性说不定是空的。除非反过来，让MessageComponent
+注入到MessageService中，这样MessageService就可以把值传给MessageComponent。那么服务中真的可以注入组件吗？继续看吧。
+
+不过前面的一个小细节把我拦住了，就是Service中不能使用providers的问题。也是病急乱投医，误打误撞解决了问题。我把**AppModule中的providers: []改为
+providers: [MessageService]**,居然神奇的解决了问题。我的理解是：不在AppModule中声明的服务只能用在组件中，而在其中声明的服务则可以用在所有类中。
+
+中文网中说这是一个典型的"服务中的服务"，但是贵站的更新稍有点落后时代啊！为了确认我不是打开了假的angular中文网，特意翻墙Google了一下，确认这是
+真正的angular中文网。并且我还到angular英文网 https://angular.io/tutorial/toh-pt4 看了一下，那里的手册依然落后于版本。不得不吐槽一下，学习前端
+很多的坑都来自官方文档误导，我们不得不含泪自己填坑。
+
+
+#### 4.5.3.从 HeroService 中发送一条消息
+
+修改 getHeroes 方法，在获取到英雄数组时发送一条消息。
+
+```typescript
+getHeroes(): Observable<Hero[]> {
+  // TODO: send the message _after_ fetching the heroes
+  this.messageService.add('HeroService: fetched heroes');
+  return of(HEROES);
+}
+```
+
+#### 4.5.4.从 HeroService 中显示消息
+
+MessagesComponent 可以显示所有消息， 包括当 HeroService 获取到英雄数据时发送的那条。
+
+打开 MessagesComponent，并且导入 MessageService。
+
+src/app/components/messages/messages.component.ts (import MessageService)
+```typescript
+import {MessageService} from 'app/services/message.service';
+```
+
+修改构造函数，添加一个 public 的 messageService 属性。 Angular 将会在创建 MessagesComponent 的实例时 把 MessageService 的实例注入到这个属性中。
+
+```typescript
+constructor(public messageService: MessageService) {}
+```
+这个 messageService 属性必须是公共属性，因为你将会在模板中绑定到它。
+```text
+Angular 只会绑定到组件的公共属性。
+```
+#### 4.5.4.绑定到 MessageService
+把 CLI 生成的 MessagesComponent 的模板改成这样：
+
+src/app/components/messages/messages.component.html
+```html
+<div *ngIf="messageService.messages.length">
+
+  <h2>Messages</h2>
+  <button class="clear"
+          (click)="messageService.clear()">clear</button>
+  <div *ngFor='let message of messageService.messages'> {{message}} </div>
+
+</div>
+```
+看到这里，我还是感叹我高估了自己的智商，原来可以使用插值表达式展示注入的服务类的属性。我的思路是一定要调用服务的方法，然后赋值给组件的属性，才能在模板中
+显示。这也是Java程序员的思路限制了我，没想到可以把messageService公有，直接使用它的公用属性，用插值表达式来展示。
+
+运行，程序没有错误，但没看到消息。原因是我在MessageComponent中加入了providers，把这个去掉就正常了。
+
+## 5.路由
+有一些《英雄指南》的新需求：
+
+* 添加一个仪表盘视图。
+* 在英雄列表和仪表盘视图之间导航。
+* 无论在哪个视图中点击一个英雄，都会导航到该英雄的详情页。
+* 在邮件中点击一个深链接，会直接打开一个特定英雄的详情视图。
+* 完成时，用户就能像这样在应用中导航：
+
+图略
+
+### 5.1.添加 AppRoutingModule
+
+Angular 的最佳实践之一就是在一个独立的顶级模块中加载和配置路由器，它专注于路由功能，然后由根模块 AppModule 导入它。
+
+按照惯例，这个模块类的名字叫做 APPRoutingModule，并且位于 src/app 下的 app-routing.module.ts 文件中。
+
+使用 CLI 生成它。
+```text
+ng generate module app-routing --flat --module=app
+```
+
+* --flat 把这个文件放进了 src/app 中，而不是单独的目录中。
+* --module=app 告诉 CLI 把它注册到 AppModule 的 imports 数组中。
+
+这样它和app.module.ts位于同一层级。
+
+生成的文件是这样的：
+
+src/app/app-routing.module.ts (generated)
+```typescript
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@NgModule({
+  imports: [
+    CommonModule
+  ],
+  declarations: []
+})
+export class AppRoutingModule { }
+```
+你通常不会在路由模块中声明组件，所以可以删除 @NgModule.declarations 并删除对 CommonModule 的引用。
+
+你将会使用 RouterModule 中的 Routes 类来配置路由器，所以还要从 @angular/router 库中导入这两个符号。
+
+添加一个 @NgModule.exports 数组，其中放上 RouterModule 。 导出 RouterModule 让路由器的相关指令可以在 AppModule 中的组件中使用。
+
+此刻的 AppRoutingModule 是这样的：
+
+src/app/app-routing.module.ts (v1)
+```typescript
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+
+@NgModule({
+  exports: [ RouterModule ]
+})
+export class AppRoutingModule {}
+```
+
+到这里，我们其实对NgModule有什么用还是一无所知的，可以看看这里： https://www.angular.cn/guide/ngmodules，
+简单说，模块就是把组件、指令和管道打包成内聚的功能块，每个模块聚焦于一个特性区域、业务领域、工作流或通用工具。它相当于可独立运行的一组功能块。
+
+#### 5.1.1.添加路由定义
+
+路由定义 会告诉路由器，当用户点击某个链接或者在浏览器地址栏中输入某个 URL 时，要显示哪个视图。
+
+典型的 Angular 路由（Route）有两个属性：
+
+* path：一个用于匹配浏览器地址栏中 URL 的字符串。
+* component：当导航到此路由时，路由器应该创建哪个组件。
+
+如果你希望当 URL 为 localhost:4200/heroes 时，就导航到 HeroesComponent。
+
+首先（AppRoutingModule）要导入 HeroesComponent，以便能在 Route 中引用它。 然后定义一个路由数组，其中的某个路由是指向这个组件的。
+```typescript
+import { HeroesComponent }      from './heroes/heroes.component';
+
+const routes: Routes = [
+  { path: 'heroes', component: HeroesComponent }
+];
+```
+
+#### 5.1.1.RouterModule.forRoot()
+你必须首先初始化路由器，并让它开始监听浏览器中的地址变化。
+
+把 RouterModule 添加到 @NgModule.imports 数组中，并用 routes 来配置它。你只要调用 imports 数组中的 RouterModule.forRoot() 函数就行了。
+
+```typescript
+imports: [ RouterModule.forRoot(routes) ],
+
+```
+```text
+这个方法之所以叫 forRoot()，是因为你要在应用的顶级配置这个路由器。 forRoot() 方法会提供路由所需的服务提供商和指令，还会基于浏览器的当前 URL 执行首次导航。
+```
+#### 5.1.2.添加路由出口 （RouterOutlet）
+打开 AppComponent 的模板，把 <app-heroes> 元素替换为 <router-outlet> 元素。
+
+src/app/app.component.html (router-outlet)
+```html
+<h1>{{title}}</h1>
+<router-outlet></router-outlet>
+<app-messages></app-messages>
+```
+
+之所以移除 <app-heroes>，是因为只有当用户导航到这里时，才需要显示 HeroesComponent。
+
+<router-outlet> 会告诉路由器要在哪里显示路由到的视图。
+
+```text
+能在 AppComponent 中使用 RouterOutlet，是因为 AppModule 导入了 AppRoutingModule，而 AppRoutingModule 中导出了 RouterModule。
+```
