@@ -12,5 +12,7 @@ export class HeroDetailComponent implements OnInit {
 
   ngOnInit() {
   }
-
+  changeHeroNameToAlice(): void {
+    this.hero.name = 'Alice';
+  }
 }

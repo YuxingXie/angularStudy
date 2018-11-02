@@ -591,5 +591,32 @@ HeroDetailComponent 的 hero 属性。
 
 这是否表示[hero]="selectedHero" 本质上是双向绑定呢？
 
-这似乎是一个哲学问题，稍有点深奥。因为HeroDetail的input中使用了[{ngModel}]=hero.name表示双向绑定。到底是谁导致了
-数据双向绑定呢？
+HeroDetail的input中使用了[{ngModel}]=hero.name表示双向绑定。到底是谁导致了主从组件的数据双向绑定呢？
+
+我们假设单项数据绑定是主组件传递一个副本或克隆到从组件，当从组件使用传递进来的值，并把该值双向绑定到模板input元素，当我们在input上输入值，那么无论如何
+也不会改写主组件的值。所以我们可以认为，主组件传递的是一个引用。那么问题是，如果是引用传递，那么从组件改变传入的值，主组件的值也必然跟着改变，为何要称为
+单项数据绑定呢？难道从组件会根据自身是否使用双向绑定来决定是否改写主组件的值？
+
+我们不妨做个实验，用事件绑定的方式改写传入的值，看看主组件是否也跟着改变。根据结果我们可以判断主从组件间的所谓"单向数据绑定"是否真的是单向。
+
+src/app/components/hero-detail/hero-detail.component.html
+```html
+<button (click)="changeHeroNameToAlice()">change {{hero.name}}'s name to Alice</button>
+```
+src/app/components/hero-detail/hero-detail.component.ts
+```typescript
+  changeHeroNameToAlice(): void {
+    this.hero.name = 'Alice';
+  }
+```
+点击按钮，神奇的事情发生了，主组件英雄列表中英雄的名字跟着改成了Alice。现在我们可以得出一个结论，所谓的"单向数据绑定"其实是主从组件双向改变的，字面的表述迷惑
+了我们。我想，这里所说的"单向"，是指[mainComponentProperty]="slaveComponentProperty"这个表达式表示数据是从主组件向从组件主动传递。实际上，从组件可以改写
+slaveComponentProperty的值从而改写主组件mainComponentProperty的值。
+
+## 4.服务
+
+英雄指南的 HeroesComponent 目前获取和显示的都是模拟数据。
+
+本节课的重构完成之后，HeroesComponent 变得更精简，并且聚焦于为它的视图提供支持。这也让它更容易使用模拟服务进行单元测试。
+
+### 4.1.为什么需要服务
