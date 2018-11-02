@@ -1159,3 +1159,221 @@ src/app/app.component.html (router-outlet)
 ```text
 能在 AppComponent 中使用 RouterOutlet，是因为 AppModule 导入了 AppRoutingModule，而 AppRoutingModule 中导出了 RouterModule。
 ```
+浏览器应该刷新，并显示着应用的标题，但是没有显示英雄列表。
+
+看看浏览器的地址栏。 URL 是以 / 结尾的。 而到 HeroesComponent 的路由路径是 /heroes。
+
+在地址栏中把 /heroes 追加到 URL 后面。你应该能看到熟悉的主从结构的英雄显示界面。
+
+### 5.2.添加路由链接 (routerLink)
+
+不应该让用户只能把路由的 URL 粘贴到地址栏中。他们还应该能通过点击链接进行导航。
+
+添加一个 &lt;nav&gt; 元素，并在其中放一个链接 &lt;a&gt; 元素，当点击它时，就会触发一个到 HeroesComponent 的导航。 修改过的 AppComponent 模板如下：
+
+src/app/components/app/app.component.html (heroes RouterLink)
+```html
+<h1>{{title}}</h1>
+<nav>
+  <a routerLink="/heroes">Heroes</a>
+</nav>
+<router-outlet></router-outlet>
+<app-messages></app-messages>
+```
+routerLink 属性的值为 "/heroes"，路由器会用它来匹配出指向 HeroesComponent 的路由。 routerLink 是 RouterLink 指令的选择器，它会把用户的点击转换为路由器的导航操作。 它是 RouterModule 中公开的另一个指令。
+
+刷新浏览器，显示出了应用的标题和指向英雄列表的链接，但并没有显示英雄列表。
+
+点击这个链接。地址栏变成了 /heroes，并且显示出了英雄列表。
+
+### 5.3.添加仪表盘视图
+当有多个视图时，路由会更有价值。不过目前还只有一个英雄列表视图。
+
+使用 CLI 添加一个 DashboardComponent：
+
+```text
+ng generate component components/dashboard
+
+```
+CLI 生成了 DashboardComponent 的相关文件，并把它声明到 AppModule 中。
+
+把这三个文件中的内容改成这样，并回来做一个随堂讨论：
+
+src/app/components/dashboard/dashboard.component.html
+```html
+<h3>Top Heroes</h3>
+<div class="grid grid-pad">
+  <a *ngFor="let hero of heroes" class="col-1-4">
+    <div class="module hero">
+      <h4>{{hero.name}}</h4>
+    </div>
+  </a>
+</div>
+```
+
+src/app/components/dashboard/dashboard.component.ts
+```typescript
+import { Component, OnInit } from '@angular/core';
+import { Hero } from 'app/entities/hero';
+import { HeroService } from 'app/services/hero.service';
+
+@Component({
+  selector: 'app-dashboard',
+  templateUrl: './dashboard.component.html',
+  styleUrls: [ './dashboard.component.css' ],
+  providers: [HeroService] //这句帮你排个坑
+})
+export class DashboardComponent implements OnInit {
+  heroes: Hero[] = [];
+
+  constructor(private heroService: HeroService) { }
+
+  ngOnInit() {
+    this.getHeroes();
+  }
+
+  getHeroes(): void {
+    this.heroService.getHeroes()
+      .subscribe(heroes => this.heroes = heroes.slice(1, 5));
+  }
+
+}
+
+
+```
+
+src/app/components/dashboard/dashboard.component.css
+```css
+/* DashboardComponent's private CSS styles */
+[class*='col-'] {
+  float: left;
+  padding-right: 20px;
+  padding-bottom: 20px;
+}
+[class*='col-']:last-of-type {
+  padding-right: 0;
+}
+a {
+  text-decoration: none;
+}
+*, *:after, *:before {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+h3 {
+  text-align: center; margin-bottom: 0;
+}
+h4 {
+  position: relative;
+}
+.grid {
+  margin: 0;
+}
+.col-1-4 {
+  width: 25%;
+}
+.module {
+  padding: 20px;
+  text-align: center;
+  color: #eee;
+  max-height: 120px;
+  min-width: 120px;
+  background-color: #607d8b;
+  border-radius: 2px;
+}
+.module:hover {
+  background-color: #eee;
+  cursor: pointer;
+  color: #607d8b;
+}
+.grid-pad {
+  padding: 10px 0;
+}
+.grid-pad > [class*='col-']:last-of-type {
+  padding-right: 20px;
+}
+@media (max-width: 600px) {
+  .module {
+    font-size: 10px;
+    max-height: 75px; }
+}
+@media (max-width: 1024px) {
+  .grid {
+    margin: 0;
+  }
+  .module {
+    min-width: 60px;
+  }
+}
+```
+这个模板用来表示由英雄名字链接组成的一个阵列。
+
+* *ngFor 复写器为组件的 heroes 数组中的每个条目创建了一个链接。
+* 这些链接被 dashboard.component.css 中的样式格式化成了一些色块。
+* 这些链接还没有指向任何地方，但很快就会了。
+
+
+这个类和 HeroesComponent 类很像。
+
+* 它定义了一个 heroes 数组属性。
+* 它的构造函数希望 Angular 把 HeroService 注入到私有的 heroService 属性中。
+* 在 ngOnInit() 生命周期钩子中调用 getHeroes。
+
+这个 getHeroes 函数会截取第 2 到 第 5 位英雄，也就是说只返回四个顶级英雄（第二，第三，第四和第五）。
+
+```typescript
+getHeroes(): void {
+  this.heroService.getHeroes()
+    .subscribe(heroes => this.heroes = heroes.slice(1, 5));
+}
+
+```
+#### 5.3.1.添加仪表盘路由
+
+要导航到仪表盘，路由器中就需要一个相应的路由。
+
+把 DashboardComponent 导入到 AppRoutingModule 中。
+
+src/app/app-routing.module.ts (import DashboardComponent)
+```typescript
+import { DashboardComponent }   from './dashboard/dashboard.component';
+```
+把一个指向 DashboardComponent 的路由添加到 AppRoutingModule.routes 数组中。
+
+content_copy
+{ path: 'dashboard', component: DashboardComponent },
+
+#### 5.3.2.添加默认路由
+
+当应用启动时，浏览器的地址栏指向了网站的根路径。 它没有匹配到任何现存路由，因此路由器也不会导航到任何地方。 <router-outlet> 下方是空白的。
+
+要让应用自动导航到这个仪表盘，请把下列路由添加到 AppRoutingModule.Routes 数组中。
+
+```typescript
+{ path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+```
+这个路由会把一个与空路径“完全匹配”的 URL 重定向到路径为 '/dashboard' 的路由。
+
+浏览器刷新之后，路由器加载了 DashboardComponent，并且浏览器的地址栏会显示出 /dashboard 这个 URL。
+
+#### 5.3.3.把仪表盘链接添加到壳组件中
+
+应该允许用户通过点击页面顶部导航区的各个链接在 DashboardComponent 和 HeroesComponent 之间来回导航。
+
+把仪表盘的导航链接添加到壳组件 AppComponent 的模板中，就放在 Heroes 链接的前面。
+
+src/app/components/app/app.component.html
+```html
+<h1>{{title}}</h1>
+<nav>
+  <a routerLink="/dashboard">Dashboard</a>
+  <a routerLink="/heroes">Heroes</a>
+</nav>
+<router-outlet></router-outlet>
+<app-messages></app-messages>
+```
+
+刷新浏览器，你就能通过点击这些链接在这两个视图之间自由导航了。
+
+### 5.4.导航到英雄详情
