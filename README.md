@@ -1629,3 +1629,27 @@ goBack(): void {
 你已经满足了在本章开头设定的所有导航需求。
 
 ## 6.HTTP
+
+在这节课中，你将借助 Angular 的 HttpClient 来添加一些数据持久化特性。
+
+* HeroService 通过 HTTP 请求获取英雄数据。
+
+* 用户可以添加、编辑和删除英雄，并通过 HTTP 来保存这些更改。
+
+* 用户可以根据名字搜索英雄。
+
+### 6.1.启用 HTTP 服务
+
+HttpClient 是 Angular 通过 HTTP 与远程服务器通讯的机制。
+
+要让 HttpClient 在应用中随处可用，请
+
+* 打开根模块 AppModule，
+
+* 从 @angular/common/http 中导入 HttpClientModule 符号,
+
+src/app/app.module.ts (Http Client import)
+```typescript
+import { HttpClientModule } from '@angular/common/http';
+```
+* 把它加入 @NgModule.imports 数组。
