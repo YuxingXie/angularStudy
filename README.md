@@ -1752,6 +1752,8 @@ catchError() 操作符会拦截失败的 Observable。 它把错误对象传给�
 下面这个 handleError() 将会在很多 HeroService 的方法之间共享，所以要把它通用化，以支持这些彼此不同的需求。
 
 它不再直接处理这些错误，而是返回给 catchError 返回一个错误处理函数。还要用操作名和出错时要返回的安全值来对这个错误处理函数进行配置。
+
+**注：catchError方法参数是一个函数，及handlerError的返回值。简单理解就是，抓住错误让这个函数去处理。**
 ```typescript
 /**
  * Handle Http operation that failed.
