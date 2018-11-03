@@ -13,6 +13,9 @@ const httpOptions = {
 export class HeroService {
   private heroesUrl = 'http://localhost:8888/api/heroes';
   private heroUrl = 'http://localhost:8888/api/hero';
+  private heroUpateUrl = 'http://localhost:8888/api/hero';
+  private heroAddUrl = 'http://localhost:8888/api/hero/add';
+  private heroSerarchUrl = 'http://localhost:8888/api/hero/search';
   constructor(
     private http: HttpClient,
     private messageService: MessageService) { }
@@ -40,13 +43,33 @@ export class HeroService {
   }
   /** PUT: update the hero on the server */
   updateHero (hero: Hero): Observable<any> {
-    return this.http.put(this.heroesUrl, hero, httpOptions).pipe(
+    return this.http.put(this.heroUpateUrl, hero, httpOptions).pipe(
       tap(_ => this.log(`updated hero id=${hero.id}`)),
       catchError(this.handleError<any>('updateHero'))
     );
   }
+  /** POST: add a new hero to the server */
+  addHero (hero: Hero): Observable<Hero> {
+    console.log(JSON.stringify(hero));
+    return this.http.post<Hero>(this.heroAddUrl, hero, httpOptions).pipe(
+      tap((_hero: Hero) => this.log(`added hero w/ id=${_hero.id}`)),
+      catchError(this.handleError<Hero>('addHero'))
+    );
+  }
+  /* GET heroes whose name contains search term */
+  searchHeroes(term: string): Observable<Hero[]> {
+    if (!term.trim()) {
+      // if not search term, return empty hero array.
+      return of([]);
+    }
+    return this.http.get<Hero[]>(`${this.heroSerarchUrl}?name=${term}`).pipe(
+      tap(_ => this.log(`found heroes matching "${term}"`)),
+      catchError(this.handleError<Hero[]>('searchHeroes', []))
+    );
+  }
   private log(message: string) {
-    this.messageService.add(`HeroService: ${message}`);
+    // this.messageService.add(`HeroService: ${message}`);
+    console.log(`HeroService: ${message}`);
   }
   private handleError<T> (operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {

@@ -8,6 +8,8 @@
 
 # 快速上手
 
+如果不求精通，那么学习完《快速上手》应该可以应付简单正常的前端开发了。当然，专业的前端工程师肯定还需要深入学习下去。
+
 ## 第一步：安装 Angular CLI
 
 略
@@ -1871,3 +1873,235 @@ const httpOptions = {
 ```
 
 刷新浏览器，修改英雄名，保存这些修改，然后点击“后退”按钮。 现在，改名后的英雄已经显示在列表中了。
+### 6.5.添加新英雄
+要添加英雄，本应用中只需要英雄的名字。你可以使用一个和添加按钮成对的 input 元素。
+
+把下列代码插入到 HeroesComponent 模板中标题的紧后面：
+
+heroes.component.html (add)
+```html
+<div>
+  <label>Hero name:
+    <input #heroName />
+  </label>
+  <!-- (click) passes input value to add() and then clears the input -->
+  <button (click)="add(heroName.value); heroName.value=''">
+    add
+  </button>
+</div>
+```
+当点击事件触发时，调用组件的点击处理器，然后清空这个输入框，以便用来输入另一个名字。
+
+heroes.component.ts (add)
+```typescript
+add(name: string): void {
+  name = name.trim();
+  if (!name) { return; }
+  this.heroService.addHero({ name } as Hero)//这一句怎么理解？as是断言关键字，那{ name }呢？难道是实例化了一个Hero吗？
+    .subscribe(hero => {
+      this.heroes.push(hero);
+    });
+}
+```
+当指定的名字非空时，这个处理器会用这个名字创建一个类似于 Hero 的对象（只缺少 id 属性），并把它传给服务的 addHero() 方法。
+
+当 addHero 保存成功时，subscribe 的回调函数会收到这个新英雄，并把它追加到 heroes 列表中以供显示。
+
+#### 6.5.1.你将在下一节编写 HeroService.addHero。
+
+往 HeroService 类中添加 addHero() 方法。
+往 HeroService 类中添加 addHero() 方法。
+
+hero.service.ts (addHero)
+```typescript
+/** POST: add a new hero to the server */
+addHero (hero: Hero): Observable<Hero> {
+  return this.http.post<Hero>(this.heroesUrl, hero, httpOptions).pipe(
+    tap((_hero: Hero) => this.log(`added hero w/ id=${_hero.id}`)),
+    catchError(this.handleError<Hero>('addHero'))
+  );
+}
+```
+HeroService.addHero() 和 updateHero 有两点不同。
+
+* 它调用 HttpClient.post() 而不是 put()。
+
+* 它期待服务器为这个新的英雄生成一个 id，然后把它通过 Observable<Hero> 返回给调用者。
+
+刷新浏览器，并添加一些英雄。
+
+### 6.6.删除某个英雄
+
+无重要知识点，略。
+
+### 6.7.根据名字搜索
+在最后一次练习中，你要学到把 Observable 的操作符串在一起，让你能将相似 HTTP 请求的数量最小化，并节省网络带宽。
+
+你将往仪表盘中加入英雄搜索特性。 当用户在搜索框中输入名字时，你会不断发送根据名字过滤英雄的 HTTP 请求。 
+你的目标是仅仅发出尽可能少的必要请求。
+
+#### 6.7.1.HeroService.searchHeroes
+先把 searchHeroes 方法添加到 HeroService 中。
+
+hero.service.ts
+```typescript
+/* GET heroes whose name contains search term */
+searchHeroes(term: string): Observable<Hero[]> {
+  if (!term.trim()) {
+    // if not search term, return empty hero array.
+    return of([]);
+  }
+  return this.http.get<Hero[]>(`${this.heroesUrl}/?name=${term}`).pipe(
+    tap(_ => this.log(`found heroes matching "${term}"`)),
+    catchError(this.handleError<Hero[]>('searchHeroes', []))
+  );
+}
+```
+
+如果没有搜索词，该方法立即返回一个空数组。 剩下的部分和 getHeroes() 很像。 唯一的不同点是 URL，它包含了一个由搜索词组成的查询字符串。
+#### 6.7.2.为仪表盘添加搜索功能
+打开 DashboardComponent 的模板并且把用于搜索英雄的元素 <app-hero-search> 添加到 DashboardComponent 模板的底部。
+
+dashboard.component.html
+```html
+<div class="grid grid-pad">
+  <a *ngFor="let hero of heroes" class="col-1-4"
+      routerLink="/detail/{{hero.id}}">
+    <div class="module hero">
+      <h4>{{hero.name}}</h4>
+    </div>
+  </a>
+</div>
+
+<app-hero-search></app-hero-search>
+```
+<h3>Top Heroes</h3>
+
+这个模板看起来很像 HeroesComponent 模板中的 *ngFor 复写器。
+
+很不幸，添加这个元素让本应用挂了。 Angular 找不到哪个组件的选择器能匹配上 <app-hero-search>。
+
+HeroSearchComponent 还不存在，这就解决。
+#### 6.7.3.创建 HeroSearchComponent
+
+使用 CLI 创建一个 HeroSearchComponent。
+
+```text
+ng generate component components/hero-search
+
+```
+CLI 生成了 HeroSearchComponent 的三个文件，并把该组件添加到了 AppModule 的声明中。
+
+把生成的 HeroSearchComponent 的模板改成一个输入框和一个匹配到的搜索结果的列表。代码如下：
+
+hero-search.component.html
+```html
+<div id="search-component">
+  <h4>Hero Search</h4>
+ 
+  <input #searchBox id="search-box" (keyup)="search(searchBox.value)" />
+ 
+  <ul class="search-result">
+    <li *ngFor="let hero of heroes$ | async" >
+      <a routerLink="/detail/{{hero.id}}">
+        {{hero.name}}
+      </a>
+    </li>
+  </ul>
+</div>
+```
+
+从下面的 最终代码 中把私有 CSS 样式添加到 hero-search.component.css 中。
+
+当用户在搜索框中输入时，一个 keyup 事件绑定会调用该组件的 search() 方法，并传入新的搜索框的值。
+
+现在代码是报错的，除非在HeroSearchComponent中加个search方法：
+```typescript
+  search(term: string): void {
+    this.heroService.searchHeroes(term).subscribe(heroes => {this.heroes$=heroes});
+  }
+```
+#### 6.7.4.AsyncPipe
+
+还是从最终代码拷贝src/app/components/hero-search/hero-search.component.ts吧。
+
+如你所愿，*ngFor 重复渲染出了这些英雄。
+
+仔细看，你会发现 *ngFor 是在一个名叫 heroes$ 的列表上迭代，而不是 heroes。
+
+```html
+<li *ngFor="let hero of heroes$ | async" >
+```
+$ 是一个命名惯例，用来表明 heroes$ 是一个 Observable，而不是数组。
+
+*ngFor 不能直接使用 Observable。 不过，它后面还有一个管道字符（|），后面紧跟着一个 async，它表示 Angular 的 AsyncPipe。
+
+AsyncPipe 会自动订阅到 Observable，这样你就不用再在组件类中订阅了。
+
+#### 6.7.5.修正 HeroSearchComponent 类
+
+修正你妹啊，老的代码你根本都没贴出来。
+
+注意，heroes$ 声明为一个 Observable
+
+```typescript
+heroes$: Observable<Hero[]>;
+```
+你将会在 ngOnInit() 中设置它，在此之前，先仔细看看 searchTerms 的定义。
+
+#### 6.7.6.RxJS Subject 类型的 searchTerms
+searchTerms 属性声明成了 RxJS 的 Subject 类型。
+
+```typescript
+private searchTerms = new Subject<string>();
+// Push a search term into the observable stream.
+search(term: string): void {
+  this.searchTerms.next(term);
+}
+```
+
+Subject 既是可观察对象的数据源，本身也是 Observable。 你可以像订阅任何 Observable 一样订阅 Subject。
+
+你还可以通过调用它的 next(value) 方法往 Observable 中推送一些值，就像 search() 方法中一样。
+
+search() 是通过对文本框的 keystroke 事件的事件绑定来调用的。
+
+```html
+<input #searchBox id="search-box" (keyup)="search(searchBox.value)" />
+```
+每当用户在文本框中输入时，这个事件绑定就会使用文本框的值（搜索词）调用 search() 函数。 
+searchTerms 变成了一个能发出搜索词的稳定的流。
+
+#### 6.7.7.串联 RxJS 操作符
+如果每当用户击键后就直接调用 searchHeroes() 将导致创建海量的 HTTP 请求，浪费服务器资源并消耗大量网络流量。
+
+应该怎么做呢？ngOnInit() 往 searchTerms 这个可观察对象的处理管道中加入了一系列 RxJS 操作符，用以缩减对 searchHeroes() 的调用次数，并最终返回一个可及时给出英雄搜索结果的可观察对象（每次都是 Hero[] ）。
+
+代码如下：
+
+```typescript
+this.heroes$ = this.searchTerms.pipe(
+  // wait 300ms after each keystroke before considering the term
+  debounceTime(300),
+
+  // ignore new term if same as previous term
+  distinctUntilChanged(),
+
+  // switch to new search observable each time the term changes
+  switchMap((term: string) => this.heroService.searchHeroes(term)),
+);
+```
+
+在传出最终字符串之前，debounceTime(300) 将会等待，直到新增字符串的事件暂停了 300 毫秒。 你实际发起请求的间隔永远不会小于 300ms。
+
+distinctUntilChanged() 会确保只在过滤条件变化时才发送请求。
+
+switchMap() 会为每个从 debounce 和 distinctUntilChanged 中通过的搜索词调用搜索服务。 它会取消并丢弃以前的搜索可观察对象，只保留最近的。
+```text
+借助 switchMap 操作符， 每个有效的击键事件都会触发一次 HttpClient.get() 方法调用。 即使在每个请求之间都有至少 300ms 的间隔，仍然可能会同时存在多个尚未返回的 HTTP 请求。
+
+switchMap() 会记住原始的请求顺序，只会返回最近一次 HTTP 方法调用的结果。 以前的那些请求都会被取消和舍弃。
+
+注意，取消前一个 searchHeroes() 可观察对象并不会中止尚未完成的 HTTP 请求。 那些不想要的结果只会在它们抵达应用代码之前被舍弃。
+```
+记住，组件类中并没有订阅 heroes$ 这个可观察对象，而是由模板中的 AsyncPipe 完成的。
