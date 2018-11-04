@@ -2105,3 +2105,77 @@ switchMap() 会记住原始的请求顺序，只会返回最近一次 HTTP 方�
 注意，取消前一个 searchHeroes() 可观察对象并不会中止尚未完成的 HTTP 请求。 那些不想要的结果只会在它们抵达应用代码之前被舍弃。
 ```
 记住，组件类中并没有订阅 heroes$ 这个可观察对象，而是由模板中的 AsyncPipe 完成的。
+
+# 选修内容
+
+## 核心知识
+
+### 1.表单
+
+#### 1.1.Angular 表单检测
+用表单处理用户输入是许多常见应用的基础功能。 应用通过表单来让用户登录、修改个人档案、输入敏感信息以及执行各种数据输入任务。
+
+Angular 提供了两种不同的方法来通过表单处理用户输入：响应式表单和模板驱动表单。 两者都从视图中捕获用户输入事件、验证用户输入、创建表单模型、修改数据模型，并提供跟踪这些更改的途径。
+
+不过，响应式表单和模板驱动表单在如何处理和管理表单和表单数据方面有所不同。各有优势。
+
+一般来说：
+
+* 响应式表单更健壮：它们的**可扩展性、可复用性和可测试性更强**。 如果表单是应用中的关键部分，或者你已经准备使用响应式编程模式来构建应用，请使用响应式表单。
+
+* **模板驱动表单在往应用中添加简单的表单时非常有用**，比如邮件列表的登记表单。它们很容易添加到应用中，但是不像响应式表单那么容易扩展。如果你有非常基本的表单需求和简单到能用模板管理的逻辑，请使用模板驱动表单。
+
+本指南提供的信息可以帮你确定哪种方式最适合你的情况。它介绍了这两种方法所用的公共构造块，还总结了两种方式之间的关键区别，并在建立、数据流和测试等不同的情境下展示了这些差异。
+
+##### 1.1.1.关键差异
+
+
+下表总结了响应式表单和模板驱动表单之间的一些关键差异。
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th><t translation-result="">响应式</t><t translation-origin="off">Reactive</t></th>
+<th><t translation-result="">模板驱动</t><t translation-origin="off">Template-driven</t></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><t translation-result="">建立（表单模式）</t><t translation-origin="off">Setup (form model)</t></td>
+<td><t translation-result="">显式，在组件类中创建。</t><t translation-origin="on">More explicit, created in the component class.</t></td>
+<td><t translation-result="">隐式，由组件创建。</t><t translation-origin="off">Less explicit, created by the directives.</t></td>
+</tr>
+<tr>
+<td><t translation-result="">数据模式</t><t translation-origin="off">Data model</t></td>
+<td><t translation-result="">结构化</t><t translation-origin="off">Structured</t></td>
+<td><t translation-result="">非结构化</t><t translation-origin="off">Unstructured</t></td>
+</tr>
+<tr>
+<td><t translation-result="">可预测性</t><t translation-origin="off">Predictability</t></td>
+<td><t translation-result="">同步</t><t translation-origin="off">Synchronous</t></td>
+<td><t translation-result="">异步</t><t translation-origin="off">Asynchronous</t></td>
+</tr>
+<tr>
+<td><t translation-result="">表单验证</t><t translation-origin="off">Form validation</t></td>
+<td><t translation-result="">函数</t><t translation-origin="off">Functions</t></td>
+<td><t translation-result="">指令</t><t translation-origin="off">Directives</t></td>
+</tr>
+<tr>
+<td><t translation-result="">可变性</t><t translation-origin="off">Mutability</t></td>
+<td><t translation-result="">不可变</t><t translation-origin="off">Immutable</t></td>
+<td><t translation-result="">可变</t><t translation-origin="off">Mutable</t></td>
+</tr>
+<tr>
+<td><t translation-result="">可伸缩性</t><t translation-origin="off">Scalability</t></td>
+<td><t translation-result="">访问底层 API</t><t translation-origin="off">Low-level API access</t></td>
+<td><t translation-result="">在 API 之上的抽象</t><t translation-origin="off">Abstraction on top of APIs</t></td>
+</tr>
+</tbody>
+</table>
+
+## Angular Universal：服务端渲染
+
+研究了半天，发现只能运行在node.js服务器上。虽然我曾经用node.js开发过web serer app,然而那是一段黑暗的历史。我尝试找angular java serer rending项目，google到了
+一个：https://github.com/swaechter/angularj-universal ，但是我突然觉得这个主题不是那么吸引人了，先跳过等有时间再来研究。
+
