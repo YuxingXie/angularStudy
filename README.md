@@ -2743,7 +2743,7 @@ FormGroup 中的这个 aliases 控件现在管理着一个控件，将来还可�
 
 使用 getter 语法创建类属性 aliases，以从父表单组中接收表示绰号的表单数组控件。
 
-src/app/profile-editor/profile-editor.component.ts (aliases getter)
+profile-editor.component.ts (aliases getter)
 ```typescript
 get aliases() {
   return this.profileForm.get('aliases') as FormArray;
@@ -2752,3 +2752,13 @@ get aliases() {
 
 **注意：因为返回的控件的类型是 AbstractControl，所以你要为该方法提供一个显式的类型声明来访问 FormArray 特有的语法。**
 
+定义一个方法来把一个绰号控件动态插入到绰号 FormArray 中。用 FormArray.push() 方法把该控件添加为数组中的新条目。
+
+profile-editor.component.ts (add alias)
+```typescript
+addAlias() {
+  this.aliases.push(this.fb.control(''));
+}
+```
+
+在这个模板中，这些控件会被迭代，把每个控件都显示为一个独立的输入框。
