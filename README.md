@@ -2541,6 +2541,156 @@ ProfileEditor 表单显示为一个组，但是将来这个模型会被进一步
 
 有两种更新模型值的方式：
 
-* 使用 setValue() 方法来为单个控件设置新值。 setValue() 方法会严格遵循表单组的结构，并整体性替换控件的值。
-* 使用 patchValue() 方法可以用对象中所定义的任何属性为表单模型进行替换。
+* 使用 setValue() 方法来为**单个控件**设置新值。 setValue() 方法会严格遵循表单组的结构，并整体性替换控件的值。
+* 使用 patchValue() 方法可以用对象中所定义的**任何属性**为表单模型进行替换。
 
+setValue() 方法的严格检查可以帮助你捕获复杂表单嵌套中的错误，而 patchValue() 在遇到那些错误时可能会默默的失败。
+
+在 ProfileEditorComponent 中，使用 updateProfile 方法传入下列数据可以更新用户的名字与街道住址。
+
+profile-editor.component.ts (patch value)
+```javascript
+  updateProfile() {
+    this.profileForm.patchValue({
+      name:{
+        firstName: 'Nancy',
+
+      }, address: {
+        street: '123 Drew Street'
+      }
+    });
+  }
+```
+
+通过往模板中添加一个按钮来模拟一次更新操作，以修改用户档案。
+
+profile-editor.component.html (update value)
+```html
+<p>
+  <button (click)="updateProfile()">Update Profile</button>
+</p>
+```
+
+当点击按钮时，profileForm 模型中只有 firstName 和 street 被修改了。注意，street 是在 address 属性的对象中被修改的。这种结构是必须的，因为 patchValue() 方法要针对模型的结构进行更新。patchValue() 只会更新表单模型中所定义的那些属性。
+
+#### 1.2.7.使用 FormBuilder 来生成表单控件
+
+当需要与多个表单打交道时，手动创建多个表单控件实例会非常繁琐。FormBuilder 服务提供了一些便捷方法来生成表单控件。FormBuilder 在幕后也使用同样的方式来创建和返回这些实例，只是用起来更简单。
+
+下面的小节中会重构 ProfileEditor 组件，用 FormBuilder 来代替手工创建这些 FormControl 和 FormGroup 实例。
+
+##### 1.2.7.1.步骤 1 - 导入 FormBuilder 类
+profile-editor.component.ts (import)
+```typescript
+import { FormBuilder } from '@angular/forms';
+```
+##### 1.2.7.2.步骤 2 - 注入 FormBuilder 服务
+
+FormBuilder 是一个可注入的服务提供商，它是由 ReactiveFormModule 提供的。只要把它添加到组件的构造函数中就可以注入这个依赖。
+
+profile-editor.component.ts (constructor)
+```typescript
+constructor(private fb: FormBuilder) { }
+```
+
+##### 1.2.7.3.步骤 3 - 生成表单控件
+
+FormBuilder 服务有三个方法：control()、group() 和 array()。这些方法都是工厂方法，用于在组件类中分别生成 FormControl、FormGroup 和 FormArray。
+
+用 group 方法来创建 profileForm 控件。
+
+profile-editor.component.ts (form builder)
+```typescript
+import { Component } from '@angular/core';
+import { FormBuilder } from '@angular/forms';
+ 
+@Component({
+  selector: 'app-profile-editor',
+  templateUrl: './profile-editor.component.html',
+  styleUrls: ['./profile-editor.component.css']
+})
+export class ProfileEditorComponent {
+  profileForm = this.fb.group({
+    name: this.fb.group({
+      firstName: this.fb.control(''),
+      lastName: [''],
+    }),
+    address: this.fb.group({
+      street: [''],
+      city: [''],
+      state: [''],
+      zip: ['']
+    }),
+  });
+ 
+  constructor(private fb: FormBuilder) { }
+}
+```
+在上面的例子中，你可以使用 group() 方法，用和前面一样的名字来定义这些属性。这里，每个控件名对应的值都是一个数组，这个数组中的第一项是其初始值。
+
+注意：你可以只使用初始值来定义控件，但是如果你的控件还需要同步或异步验证器，那就在这个数组中的第二项和第三项提供同步和异步验证器。
+
+比较一下用表单构建器和手动创建实例这两种方式(当然是FormBuild方式更简洁)。
+
+要记住一个细节，使用FormBuild创建表单空间，FormController可以用lastName: ['']也可以使用 this.fb.control('')或new FormControl(''),这三者等价。但是第一种方式为何使用一个字符串数组？
+
+##### 1.2.8.简单表单验证
+
+表单验证用于验证用户的输入，以确保其完整和正确。本节讲解了如何把单个验证器添加到表单控件中，以及如何显示表单的整体状态。表单验证的更多知识在表单验证一章中有详细的讲解。
+
+###### 1.2.8.1.步骤 1 - 导入验证器函数
+
+响应式表单包含了一组开箱即用的常用验证器函数。这些函数接收一个控件，用以验证并根据验证结果返回一个错误对象或空值。
+
+从 @angular/forms 包中导入 Validators 类。
+
+profile-editor.component.ts (import)
+```typescript
+import { Validators } from '@angular/forms';
+```
+
+###### 1.2.8.2.步骤 2 - 把字段设为必填（required）
+最常见的校验项是把一个字段设为必填项。本节描述如何为 firstName 控件添加“必填项”验证器。
+
+在 ProfileEditor 组件中，把静态方法 Validators.required 设置为 firstName 控件值数组中的第二项。
+
+profile-editor.component.ts (required validator)
+```typescript
+profileForm = this.fb.group({
+  firstName: ['', Validators.required],
+  lastName: [''],
+  address: this.fb.group({
+    street: [''],
+    city: [''],
+    state: [''],
+    zip: ['']
+  }),
+});
+```
+现在知道firstName: ['', Validators.required]为什么是一个字符串数组了。
+
+HTML5 有一组内置的属性，用来进行原生验证，包括 required、minlength、maxlength 等。虽然是可选的，不过你也可以在表单的输入元素上把它们添加为附加属性来使用它们。这里我们把 required 属性添加到 firstName 输入元素上。
+
+profile-editor.component.html (required attribute)
+```html
+<!--required不是必须的，但加上会更好-->
+<input type="text" formControlName="firstName" required>
+```
+
+注意：这些 HTML5 验证器属性可以和 Angular 响应式表单提供的内置验证器组合使用。组合使用这两种验证器实践，可以防止在模板检查完之后表达式再次被修改导致的错误。
+
+###### 1.2.8.3.显示表单状态
+
+当你往表单控件上添加了一个必填字段时，它的初始值是无效的（invalid）。这种无效状态会传播到其父 FormGroup 元素中，也让这个 FormGroup 的状态变为无效的。你可以通过该 FormGroup 实例的 status 属性来访问其当前状态。
+
+使用插值表达式显示 profileForm 的当前状态。
+
+profile-editor.component.html (display status)
+```html
+<p>
+  Form value: {{ profileForm.valueChanges | async | json }}
+</p>
+<p>
+  Form Status: {{ profileForm.status }}
+</p>
+```

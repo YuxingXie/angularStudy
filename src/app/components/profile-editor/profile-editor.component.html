@@ -2,7 +2,7 @@
   <div formGroupName="name">
     <label>
       First Name:
-      <input type="text" formControlName="firstName">
+      <input type="text" formControlName="firstName" required>
     </label>
 
     <label>
@@ -33,6 +33,17 @@
       <input type="text" formControlName="zip">
     </label>
   </div>
-  <button type="submit" [disabled]="!profileForm.valid">Submit</button>
+  <p>
+    <button (click)="updateProfile()">Update Profile</button>
+  </p>
+  <p>
+    <button type="submit" [disabled]="!profileForm.valid">Submit</button>
+  </p>
 
 </form>
+<p>
+  Form value: {{ profileForm.valueChanges | async | json }}
+</p>
+<p>
+  Form Status: {{ profileForm.status }}
+</p>
