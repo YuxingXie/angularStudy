@@ -2108,13 +2108,20 @@ switchMap() 会记住原始的请求顺序，只会返回最近一次 HTTP 方�
 
 # 选修内容
 
+## Angular Universal：服务端渲染
+
+研究了半天，发现只能运行在node.js服务器上。虽然我曾经用node.js开发过web serer app,然而那是一段黑暗的历史。我尝试找angular java serer rending项目，google到了
+一个：https://github.com/swaechter/angularj-universal ，但是我突然觉得这个主题不是那么吸引人了，先跳过等有时间再来研究。
+
 ## 核心知识
 
 ### 1.表单
 
-这一节建议学习了下两节再回来看。
+这一节（1.1）建议学习了下两节再回来看。
 
-#### 1.1.Angular 表单检测
+#### 1.1.简介
+
+##### 1.1.1.Angular 表单检测
 用表单处理用户输入是许多常见应用的基础功能。 应用通过表单来让用户登录、修改个人档案、输入敏感信息以及执行各种数据输入任务。
 
 Angular 提供了两种不同的方法来通过表单处理用户输入：响应式表单和模板驱动表单。 两者都从视图中捕获用户输入事件、验证用户输入、创建表单模型、修改数据模型，并提供跟踪这些更改的途径。
@@ -2129,7 +2136,7 @@ Angular 提供了两种不同的方法来通过表单处理用户输入：响应
 
 本指南提供的信息可以帮你确定哪种方式最适合你的情况。它介绍了这两种方法所用的公共构造块，还总结了两种方式之间的关键区别，并在建立、数据流和测试等不同的情境下展示了这些差异。
 
-##### 1.1.1.关键差异
+##### 1.1.2.关键差异
 
 
 下表总结了响应式表单和模板驱动表单之间的一些关键差异。
@@ -2176,8 +2183,348 @@ Angular 提供了两种不同的方法来通过表单处理用户输入：响应
 </tbody>
 </table>
 
-## Angular Universal：服务端渲染
+#### 1.2.响应式表单
 
-研究了半天，发现只能运行在node.js服务器上。虽然我曾经用node.js开发过web serer app,然而那是一段黑暗的历史。我尝试找angular java serer rending项目，google到了
-一个：https://github.com/swaechter/angularj-universal ，但是我突然觉得这个主题不是那么吸引人了，先跳过等有时间再来研究。
+响应式表单提供了一种模型驱动的方式来处理表单输入，其中的值会随时间而变化。本文会向你展示如何创建和更新单个表单控件，然后在一个分组中使用多个控件，
+验证表单的值，以及如何实现更高级的表单。
 
+##### 1.2.1.响应式表单简介
+
+响应式表单使用显式的、不可变的方式，管理表单在特定的时间点上的状态。对表单状态的每一次变更都会返回一个新的状态，这样可以在变化时维护模型的整体性。
+响应式表单是围绕 Observable 的流构建的，表单的输入和值都是通过这些输入值组成的流来提供的，它可以同步访问。
+
+响应式表单还提供了一种更直白的测试路径，因为在请求时你可以确信这些数据是一致的、可预料的。这个流的任何一个消费者都可以安全地操纵这些数据。
+
+响应式表单与模板驱动的表单有着显著的不同点。响应式表单通过对数据模型的同步访问提供了更多的可预测性，使用 Observable 的操作符提供了不可变性，
+并且通过 Observable 流提供了变化追踪功能。 如果你更喜欢在模板中直接访问数据，那么模板驱动的表单会显得更明确，因为它们依赖嵌入到模板中的指令，
+并借助可变数据来异步跟踪变化。参见表单概览来了解这两种范式之间的详细比较。
+
+
+##### 1.2.2.快速起步
+
+本节描述了如何添加单个表单控件。这里的例子允许用户在输入框中输入自己的名字，捕获输入的值，并把表单控件元素的当前值显示出来。
+
+###### 1.2.2.1.步骤 1 - 注册 ReactiveFormsModule
+
+要使用响应式表单，就要从 @angular/forms 包中导入 ReactiveFormsModule 并把它添加到你的 NgModule 的 imports 数组中。
+
+src/app/app.module.ts (excerpt)
+```typescript
+import { ReactiveFormsModule } from '@angular/forms';
+
+@NgModule({
+  imports: [
+    // other imports ...
+    ReactiveFormsModule
+  ],
+})
+export class AppModule { }
+```
+
+
+###### 1.2.2.2.步骤 2 - 生成并导入一个新的表单控件
+
+为该控件生成一个组件。
+
+```text
+ng generate component components/NameEditor
+```
+
+当使用响应式表单时，FormControl 类是最基本的构造块。要注册单个的表单控件，请在组件中导入 FormControl 类，并创建一个 FormControl 的新实例，把它保存在类的某个属性中。
+
+src/app/components/name-editor/name-editor.component.ts
+```typescript
+import { Component } from '@angular/core';
+import { FormControl } from '@angular/forms';
+
+@Component({
+  selector: 'app-name-editor',
+  templateUrl: './name-editor.component.html',
+  styleUrls: ['./name-editor.component.css']
+})
+export class NameEditorComponent {
+  name = new FormControl('');
+}
+```
+import { Component } from '@angular/core';
+import { FormControl } from '@angular/forms';
+
+@Component({
+  selector: 'app-name-editor',
+  templateUrl: './name-editor.component.html',
+  styleUrls: ['./name-editor.component.css']
+})
+export class NameEditorComponent {
+  name = new FormControl('');//参数表示初始值
+}
+
+可以用 FormControl 的构造函数设置初始值，这个例子中它是空字符串。通过在你的组件类中创建这些控件，你可以直接对表单控件的状态进行监听、修改和校验。
+
+###### 1.2.2.3.步骤 3 - 在模板中注册该控件
+
+在组件类中创建了控件之后，你还要把它和模板中的一个表单控件关联起来。修改模板，为表单控件添加 formControl 绑定，formControl 是由 ReactiveFormsModule 中的 FormControlDirective 提供的。
+
+src/app/components/name-editor/name-editor.component.html
+```html
+<label>
+  Name:
+  <input type="text" [formControl]="name">
+</label>
+```
+
+使用这种模板绑定语法，把该表单控件注册给了模板中名为 name 的输入元素。这样，表单控件和 DOM 元素就可以互相通讯了：视图会反映模型的变化，模型也会反映视图中的变化。
+
+####### 显示组件
+
+把该组件添加到模板时，将显示指派给 name 的表单控件。
+
+(注：可以注释掉英雄列表相应的模板)
+
+src/app/components/app.component.html (name editor)
+```html
+<!--<h1>{{title}}</h1>-->
+<!--<nav>-->
+  <!--<a routerLink="/heroes">Heroes</a>-->
+  <!--<a routerLink="/dashboard">Dashboard</a>-->
+<!--</nav>-->
+<!--<router-outlet></router-outlet>-->
+<!--<app-messages></app-messages>-->
+<app-name-editor></app-name-editor>
+```
+
+##### 1.2.3.管理控件的值
+
+响应式表单让你可以访问表单控件此刻的状态和值。你可以通过组件类或组件模板来操纵其当前状态和值。下面的例子会显示及修改 FormControl 实例的值。
+
+###### 1.2.3.1.显示表单控件的值
+
+你可以用两种方式显示它的值：
+
+* 通过可观察对象 valueChanges，你可以在模板中使用 AsyncPipe 或在组件类中使用 subscribe() 方法来监听表单值的变化。
+* 使用 value 属性。它能让你获得当前值的一份快照。
+
+下面的例子展示了如何在模板中使用插值表达式显示当前值。
+
+src/app/components/name-editor/name-editor.component.html (control value)
+```html
+<p>
+  Value: {{ name.value }}
+</p>
+```
+
+一旦你修改了表单控件所关联的元素，这里显示的值也跟着变化了。
+
+
+以上是第二种方式。我还要研究一下第一种方式。
+
+模板中显示控件值：
+
+src/app/components/name-editor/name-editor.component.html
+```html
+<p>
+  Value: {{ name.valueChanges | async }}
+</p>
+```
+正确。
+
+组件中订阅控件值(编程方式，可能放在ngOnInit方法中更好)：
+
+src/app/components/name-editor/name-editor.component.ts
+```typescript
+  constructor() {
+    this.name.valueChanges.subscribe(value => console.log(value));
+  }
+```
+仍然正确。
+
+响应式表单还能通过每个实例的属性和方法提供关于特定控件的更多信息。AbstractControl 的这些属性和方法用于控制表单状态，并在处理表单校验时决定何时显示信息。 欲知详情，参见稍后的简单表单验证一节。
+
+要了解 FormControl 的其它属性和方法，参见响应式表单 API一节。
+
+
+###### 1.2.3.2.替换表单控件的值
+
+响应式表单还有一些方法可以用编程的方式修改控件的值，它让你可以灵活的修改控件的值而不需要借助用户交互。FormControl 提供了一个 setValue() 方法，它会修改这个表单控件的值，并且验证与控件结构相对应的值的结构。比如，当从后端 API 或服务接收到了表单数据时，可以通过 setValue() 方法来把原来的值替换为新的值。
+
+下列的例子往组件类中添加了一个方法，它使用 setValue() 方法来修改 Nancy 控件的值。
+
+name-editor.component.ts (update value)
+```typescript
+updateName() {
+  this.name.setValue('Nancy');
+}
+```
+
+修改模板，添加一个按钮，用于模拟改名操作。在点 Update Name 按钮之前表单控件元素中输入的任何值都会回显为它的当前值。
+
+name-editor.component.html (update value)
+```html
+<p>
+  <button (click)="updateName()">Update Name</button>
+</p>
+```
+
+由于表单模型中才是该控件真正的源头，因此当你单击该按钮时，组件中该输入框的值也变化了，覆盖掉它的当前值。
+
+**注意：在这个例子中，你只使用单个控件，但是当调用 FormGroup 或 FormArray 的 setValue() 方法时，传入的值就必须匹配控件组或控件数组的结构才行。**
+
+##### 1.2.4.把表单控件分组
+
+就像 FormControl 的实例能让你控制单个输入框所对应的控件一样，FormGroup 的实例也能跟踪一组 FormControl 实例（比如一个表单）的表单状态。当创建 FormGroup 时，其中的每个控件都会根据其名字进行跟踪。下列例子展示了如何管理单个控件组中的多个 FormControl 实例。
+
+生成一个 ProfileEditor 组件并从 @angular/forms 包中导入 FormGroup 和 FormControl 类。
+
+```text
+ng generate component components/ProfileEditor
+```
+
+profile-editor.component.ts (imports)
+```typescript
+import { FormGroup, FormControl } from '@angular/forms';
+```
+
+##### 1.2.4.1.步骤 1 - 创建 FormGroup 实例
+
+在组件类中创建一个名叫 profileForm 的属性，并设置为 FormGroup 的一个新实例。要初始化这个 FormGroup，请为构造函数提供一个由控件组成的对象，
+对象中的每个名字都要和表单控件的名字一一对应。
+
+对此个人档案表单，要添加两个 FormControl 实例，名字分别为 firstName 和 lastName。
+
+profile-editor.component.ts (form group)
+```typescript
+import { Component } from '@angular/core';
+import { FormGroup, FormControl } from '@angular/forms';
+ 
+@Component({
+  selector: 'app-profile-editor',
+  templateUrl: './profile-editor.component.html',
+  styleUrls: ['./profile-editor.component.css']
+})
+export class ProfileEditorComponent {
+  profileForm = new FormGroup({
+    firstName: new FormControl(''),
+    lastName: new FormControl(''),
+  });
+}
+```
+
+现在，这些独立的表单控件被收集到了一个控件组中。这个 FormGroup 用对象的形式提供了它的模型值，这个值来自组中每个控件的值。 FormGroup 实例拥有和 FormControl 实例相同的属性（比如 value、untouched）和方法（比如 setValue()）。
+
+##### 1.2.4.2.步骤 2 - 关联 FormGroup 的模型和视图
+
+这个表单组还能跟踪其中每个控件的状态及其变化，所以如果其中的某个控件的状态或值变化了，父控件也会发出一次新的状态变更或值变更事件。该控件组的模型来自它的所有成员。在定义了这个模型之后，你必须更新模板，来把该模型反映到视图中。
+
+profile-editor.component.html (template form group)
+```html
+<form [formGroup]="profileForm">
+  
+  <label>
+    First Name:
+    <input type="text" formControlName="firstName">
+  </label>
+
+  <label>
+    Last Name:
+    <input type="text" formControlName="lastName">
+  </label>
+
+</form>
+```
+
+注意，就像 FormGroup 所包含的那控件一样，profileForm 这个 FormGroup 也通过 FormGroup 指令绑定到了 form 元素，在该模型和表单中的输入框之间创建了一个通讯层。 由 **FormControlName** 指令提供的 **formControlName** 属性把每个输入框和 FormGroup 中定义的表单控件绑定起来。
+这些表单控件会和相应的元素通讯，它们还把更改传递给 FormGroup，这个 FormGroup 是模型值的真正源头。
+
+##### 1.2.4.3.保存表单数据
+
+ProfileEditor 组件从用户那里获得输入，但在真实的场景中，你可能想要先捕获表单的值，等将来在组件外部进行处理。 FormGroup 指令会监听 form 元素发出的 submit 事件，并发出一个 ngSubmit 事件，让你可以绑定一个回调函数。
+
+把 onSubmit() 回调方法添加为 form 标签上的 ngSubmit 事件监听器。
+
+profile-editor.component.html (submit event)
+```html
+<form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+
+```
+ProfileEditor 组件上的 onSubmit() 方法会捕获 profileForm 的当前值。要保持该表单的封装性，就要使用 EventEmitter 向组件外部提供该表单的值。下面的例子会使用 console.warn 把这个值记录到浏览器的控制台中。
+
+profile-editor.component.ts (submit method)
+```typescript
+onSubmit() {
+  // TODO: Use EventEmitter with form value
+  console.warn(this.profileForm.value);
+}
+```
+
+form 标签所发出的 submit 事件是原生 DOM 事件，通过点击类型为 submit 的按钮可以触发本事件。这还让用户可以用回车键来提交填完的表单。
+
+往表单的底部添加一个 button，用于触发表单提交。
+
+
+profile-editor.component.html (submit button)
+```html
+<button type="submit" [disabled]="!profileForm.valid">Submit</button>
+```
+**注意：上面这个代码片段中的按钮还附加了一个 disabled 绑定，用于在 profileForm 无效时禁用该按钮。目前你还没有执行任何表单验证逻辑，因此该按钮始终是可用的。稍后的表单验证一节会讲解简单的表单验证。**
+
+##### 1.2.4.4.显示组件
+略
+
+##### 1.2.4.5.增强FormGroup
+上面例子我们看到表单提交时控制台打印：
+```js
+{firstName: "James", lastName: "Bond"}
+```
+但我希望是：
+```js
+{name:{firstName: "James", lastName: "Bond"}}
+```
+对不起，多次尝试都报错，继续学习。
+
+#### 1.2.5.嵌套的表单组
+
+如果要构建复杂的表单，如果能在更小的分区中管理不同类别的信息就会更容易一些，而有些信息分组可能会自然的汇入另一个更大的组中。使用嵌套的 FormGroup 可以让你把大型表单组织成一些稍小的、易管理的分组。
+
+##### 1.2.5.1.步骤 1 - 创建嵌套的分组
+
+“地址”就是可以把信息进行分组的绝佳范例。FormGroup 可以同时接纳 FormControl 和 FormGroup 作为子控件。这使得那些比较复杂的表单模型可以更易于维护、更有逻辑性。要想在 profileForm 中创建一个嵌套的分组，请添加一个内嵌的名叫 address 的元素指向这个 FormGroup 实例。
+
+在这个例子中，address group 把现有的 firstName、lastName 控件和新的 street、city、state 和 zip 控件组合在一起。虽然 address 这个 FormGroup 是 profileForm 这个整体 FormGroup 的一个子控件，但是仍然适用同样的值和状态的变更规则。
+来自内嵌控件组的状态和值的变更将会冒泡到它的父控件组，以维护整体模型的一致性。
+
+##### 1.2.5.2.步骤 2 - 在模板中分组内嵌的表单
+
+profile-editor.component.html (template nested form group)
+```html
+<div formGroupName="address">
+  <h3>Address</h3>
+
+  <label>
+    Street:
+    <input type="text" formControlName="street">
+  </label>
+
+  <label>
+    City:
+    <input type="text" formControlName="city">
+  </label>
+  
+  <label>
+    State:
+    <input type="text" formControlName="state">
+  </label>
+
+  <label>
+    Zip Code:
+    <input type="text" formControlName="zip">
+  </label>
+</div>
+
+```
+
+看到这里，我明白了我上一步的研究在模板中少了关键的一步：
+```html
+<div formGroupName="name">
+  <!--firstName和lastName放这里-->
+</div>
+
+```

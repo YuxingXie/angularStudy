@@ -11,11 +11,14 @@ import { TestComponentComponent } from './components/test-component/test-compone
 import { FormsModule } from '@angular/forms';
 import { HeroDetailComponent } from './components/hero-detail/hero-detail.component';
 import { MessagesComponent } from './components/messages/messages.component';
-import {MessageService} from './services/message.service';
+import { MessageService } from './services/message.service';
 import { AppRoutingModule } from './app-routing.module';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { HttpClientModule } from '@angular/common/http';
 import { HeroSearchComponent } from './components/hero-search/hero-search.component';
+import { ReactiveFormsModule } from '@angular/forms';
+import { NameEditorComponent } from './components/name-editor/name-editor.component';
+import { ProfileEditorComponent } from './components/profile-editor/profile-editor.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -27,10 +30,13 @@ import { HeroSearchComponent } from './components/hero-search/hero-search.compon
     HeroDetailComponent,
     MessagesComponent,
     DashboardComponent,
-    HeroSearchComponent
+    HeroSearchComponent,
+    NameEditorComponent,
+    ProfileEditorComponent
   ],
   imports: [
     FormsModule,
+    ReactiveFormsModule,
     BrowserModule,
     AppRoutingModule,
     HttpClientModule
