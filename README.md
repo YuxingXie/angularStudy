@@ -2528,3 +2528,19 @@ profile-editor.component.html (template nested form group)
 </div>
 
 ```
+ProfileEditor 表单显示为一个组，但是将来这个模型会被进一步细分，以表示逻辑分组区域。
+
+
+**注意：这里使用了 value 属性和 JsonPipe 管道在组件模板中显示了这个 FormGroup 的值。**
+
+#### 1.2.6.部分模型更新
+
+当修改包含多个 FormGroup 实例的值时，你可能只希望更新模型中的一部分，而不是完全替换掉。这一节会讲解该如何更新 AbstractControl 模型中的一部分。
+
+##### 1.2.6.1.修补（Patching）模型值
+
+有两种更新模型值的方式：
+
+* 使用 setValue() 方法来为单个控件设置新值。 setValue() 方法会严格遵循表单组的结构，并整体性替换控件的值。
+* 使用 patchValue() 方法可以用对象中所定义的任何属性为表单模型进行替换。
+
