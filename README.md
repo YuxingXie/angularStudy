@@ -2762,3 +2762,28 @@ addAlias() {
 ```
 
 在这个模板中，这些控件会被迭代，把每个控件都显示为一个独立的输入框。
+
+###### 1.2.9.4.步骤 4 - 在模板中显示表单数组
+
+要想为表单模型添加 aliases ，你必须把它加入到模板中供用户输入。和 FormGroupNameDirective 提供的 formGroupName 一样，FormArrayNameDirective 也使用 formArrayName 在这个 FormArray 实例和模板之间建立绑定。
+
+在 formGroupName &lt;div&gt; 元素的结束标签下方，添加一段模板 HTML。
+
+profile-editor.component.html (aliases form array template)
+```html
+<div formArrayName="aliases">
+  <h3>Aliases</h3> <button (click)="addAlias()">Add Alias</button>
+
+  <div *ngFor="let address of aliases.controls; let i=index">
+    <!-- The repeated alias template -->
+    <label>
+      Alias:
+      <input type="text" [formControlName]="i">
+    </label>
+  </div>
+</div>
+```
+
+*ngFor 指令对 aliases FormArray 提供的每个 FormControl 进行迭代。因为 FormArray 中的元素是匿名的，所以你要把索引号赋值给 i 变量，并且把它传给每个控件的 formControlName 输入属性。
+
+注：从打印的值看："aliases": [ "a", "b", "c", "d", "e", "f", "g" ] 是否表示aliases是一个匿名控件数组？
