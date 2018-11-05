@@ -2694,3 +2694,61 @@ profile-editor.component.html (display status)
   Form Status: {{ profileForm.status }}
 </p>
 ```
+提交按钮被禁用了，因为 firstName 控件的必填项规则导致了 profileForm 也是无效的。在你填写了 firstName 输入框之后，该表单就变成了有效的，并且提交按钮也启用了。
+
+要了解表单验证的更多知识，参见表单验证一章。
+
+##### 1.2.9.使用表单数组管理动态控件
+
+FormArray 是 FormGroup 之外的另一个选择，用于管理任意数量的匿名控件。像 FormGroup 实例一样，你也可以往 FormArray 中动态插入和移除控件，并且 FormArray 实例的值和验证状态也是根据它的子控件计算得来的。 
+不过，你不需要为每个控件定义一个名字作为 key，因此，如果你事先不知道子控件的数量，这就是一个很好的选择。下面的例子展示了如何在 ProfileEditor 中管理一组绰号（aliases）。
+
+###### 1.2.9.1.步骤 1 - 导入 FormArray
+
+从 @angular/form 中导入 FormArray，以使用它的类型信息。FormBuilder 服务用于创建 FormArray 实例。
+
+profile-editor.component.ts (import)
+```typescript
+import { FormArray } from '@angular/forms';
+```
+
+###### 1.2.9.2.步骤 2 - 定义 FormArray
+
+你可以通过把一组（从零项到多项）控件定义在一个数组中来初始化一个 FormArray。为 profileForm 添加一个 aliases 属性，把它定义为 FormArray 类型。
+
+使用 FormBuilder.array() 方法来定义该数组，并用 FormBuilder.control() 方法来往该数组中添加一个初始控件。
+
+profile-editor.component.ts (aliases form array)
+```typescript
+profileForm = this.fb.group({
+  firstName: ['', Validators.required],
+  lastName: [''],
+  address: this.fb.group({
+    street: [''],
+    city: [''],
+    state: [''],
+    zip: ['']
+  }),
+  aliases: this.fb.array([
+    this.fb.control('')
+  ])
+});
+```
+
+FormGroup 中的这个 aliases 控件现在管理着一个控件，将来还可以动态添加多个。
+
+###### 1.2.9.3.步骤 3 - 访问 FormArray 控件
+
+相对于重复使用 profileForm.get() 方法获取每个实例的方式，getter 可以让你轻松访问表单数组各个实例中的别名。 表单数组实例用一个数组来代表未定数量的控件。通过 getter 来访问控件很方便，这种方法还能很容易地重复处理更多控件。
+
+使用 getter 语法创建类属性 aliases，以从父表单组中接收表示绰号的表单数组控件。
+
+src/app/profile-editor/profile-editor.component.ts (aliases getter)
+```typescript
+get aliases() {
+  return this.profileForm.get('aliases') as FormArray;
+}
+```
+
+**注意：因为返回的控件的类型是 AbstractControl，所以你要为该方法提供一个显式的类型声明来访问 FormArray 特有的语法。**
+
