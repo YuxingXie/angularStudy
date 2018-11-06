@@ -2787,3 +2787,441 @@ profile-editor.component.html (aliases form array template)
 *ngFor 指令对 aliases FormArray 提供的每个 FormControl 进行迭代。因为 FormArray 中的元素是匿名的，所以你要把索引号赋值给 i 变量，并且把它传给每个控件的 formControlName 输入属性。
 
 注：从打印的值看："aliases": [ "a", "b", "c", "d", "e", "f", "g" ] 是否表示aliases是一个匿名控件数组？
+
+#### 1.3.模板驱动表单
+
+这一节理解上不会有太多问题，我准备不写代码，只把一些值得说的提出来讲一下。
+
+
+```text
+ng generate class Hero
+```
+这个ng generate class似乎是一个新语法。
+
+```typescript
+get diagnostic() { return JSON.stringify(this.model); }
+```
+相当于**添加一个 diagnostic 属性**，以返回这个模型的 JSON 形式。
+
+还记得FormsModule吗？我们在之前的双向绑定[{ngModel}]='property'中导入过它。
+
+
+hero-form.component.html (powers)
+```html
+<div class="form-group">
+  <label for="power">Hero Power</label>
+  <select class="form-control" id="power" required>
+    <option *ngFor="let pow of powers" [value]="pow">{{pow}}</option>
+  </select>
+</div>
+```
+用数组创建一个下拉菜单。
+```html
+<form #heroForm="ngForm">
+```
+heroForm 变量是一个到 NgForm 指令的引用，它代表该表单的整体。
+
+什么是 NgForm 指令？ 但你明明没有添加过NgForm指令啊！
+
+Angular 替你做了。Angular 会在 <form> 标签上自动创建并附加一个 NgForm 指令。
+
+NgForm 指令为 form 增补了一些额外特性。 它会控制那些带有 ngModel 指令和 name 属性的元素，监听他们的属性（包括其有效性）。 它还有自己的 valid 属性，这个属性只有在它包含的每个控件都有效时才是真。
+
+'#heroForm'应该是称为**模板引用变量** ，引用模板中的某个 DOM 元素，它还可以引用 Angular 组件或指令或Web Component。
+
+关于模板引用变量见 https://www.angular.cn/guide/template-syntax
+```html
+<label for="name">Name</label>
+<input type="text" class="form-control" id="name"
+       required
+       [(ngModel)]="model.name" name="name"
+       #name="ngModel">
+<div [hidden]="name.valid || name.pristine"
+     class="alert alert-danger">
+  Name is required
+</div>
+```
+
+模板引用变量可以访问模板中输入框的 Angular 控件。 这里，创建了名叫 name 的变量，并且赋值为 "ngModel"。为什么是 “ngModel”？ 指令的 exportAs 属性告诉 Angular 如何链接模板引用变量到指令。 
+这里把 name 设置为 ngModel 是因为 ngModel 指令的 exportAs 属性设置成了 “ngModel”。
+
+点击提交按钮需要表单绑定提交事件：
+```html
+<form (ngSubmit)="onSubmit()" #heroForm="ngForm">
+```
+
+隐藏一个模板元素：
+```html
+<div [hidden]="!submitted">
+```
+
+#### 1.4.表单验证
+
+这一小节我没有自己写代码测试。如果您认为需要，就照着拷贝就好额。
+
+##### 1.4.1.模板驱动的表单验证
+
+模板驱动表单验证就不深究了，看代码一目了然，没有什么障碍。当然前提还是有的，比如要理解模板变量的概念。
+
+##### 1.4.2.响应式表单验证
+
+在响应式表单中，真正的源码都在组件类中。不应该通过模板上的属性来添加验证器，而应该在组件类中直接把验证器函数添加到表单控件模型上（FormControl）。然后，一旦控件发生了变化，Angular 就会调用这些函数。
+
+###### 1.4.2.1.验证器函数
+
+有两种验证器函数：同步验证器和异步验证器。
+
+* 同步验证器函数接受一个控件实例，然后返回一组验证错误或 null。你可以在实例化一个 FormControl 时把它作为构造函数的第二个参数传进去。
+* 异步验证器函数接受一个控件实例，并返回一个承诺（Promise）或可观察对象（Observable），它们稍后会发出一组验证错误或者 null。你可以在实例化一个 FormControl 时把它作为构造函数的第三个参数传进去。
+
+注意：出于性能方面的考虑，只有在所有同步验证器都通过之后，Angular 才会运行异步验证器。当每一个异步验证器都执行完之后，才会设置这些验证错误。
+
+###### 1.4.2.2.内置验证器
+
+你可以写自己的验证器，也可以使用一些 Angular 内置的验证器。
+
+模板驱动表单中可用的那些属性型验证器（如 required、minlength 等）对应于 Validators 类中的同名函数。要想查看内置验证器的全列表，参见 API 参考手册中的验证器部分。
+
+要想把这个英雄表单改造成一个响应式表单，你还是用那些内置验证器，但这次改为用它们的函数形态。
+
+hero-form-reactive.component.ts (validator functions)
+```typescript
+ngOnInit(): void {
+  this.heroForm = new FormGroup({
+    'name': new FormControl(this.hero.name, [
+      Validators.required,
+      Validators.minLength(4),
+      forbiddenNameValidator(/bob/i) // <-- Here's how you pass in the custom validator.
+    ]),
+    'alterEgo': new FormControl(this.hero.alterEgo),
+    'power': new FormControl(this.hero.power, Validators.required)
+  });
+
+}
+
+get name() { return this.heroForm.get('name'); }
+
+get power() { return this.heroForm.get('power'); }
+```
+注意
+
+* name 控件设置了两个内置验证器：Validators.required 和 Validators.minLength(4)。要了解更多信息，参见本章的自定义验证器一节。
+* 由于这些验证器都是同步验证器，因此你要把它们作为第二个参数传进去。
+* 可以通过把这些函数放进一个数组后传进去，可以支持多重验证器。
+* 这个例子添加了一些 getter 方法。在响应式表单中，你通常会通过它所属的控件组（FormGroup）的 get 方法来访问表单控件，但有时候为模板定义一些 getter 作为简短形式。
+
+如果你到模板中找到 name 输入框，就会发现它和模板驱动的例子很相似。
+
+hero-form-reactive.component.html (name with error msg)
+```html
+<input id="name" class="form-control"
+      formControlName="name" required >
+
+<div *ngIf="name.invalid && (name.dirty || name.touched)"
+    class="alert alert-danger">
+
+  <div *ngIf="name.errors.required">
+    Name is required.
+  </div>
+  <div *ngIf="name.errors.minlength">
+    Name must be at least 4 characters long.
+  </div>
+  <div *ngIf="name.errors.forbiddenName">
+    Name cannot be Bob.
+  </div>
+</div>
+```
+关键改动是：
+
+* 该表单不再导出任何指令，而是使用组件类中定义的 name 读取器。
+* required 属性仍然存在，虽然验证不再需要它，但你仍然要在模板中保留它，以支持 CSS 样式或可访问性。
+
+###### 1.4.2.3.自定义验证器
+
+由于内置验证器无法适用于所有应用场景，有时候你还是得创建自定义验证器。
+
+考虑前面的例子中的 forbiddenNameValidator 函数。该函数的定义看起来是这样的：
+
+forbidden-name.directive.ts (forbiddenNameValidator)
+```typescript
+/** A hero's name can't match the given regular expression */
+export function forbiddenNameValidator(nameRe: RegExp): ValidatorFn {
+  return (control: AbstractControl): {[key: string]: any} | null => {
+    const forbidden = nameRe.test(control.value);
+    return forbidden ? {'forbiddenName': {value: control.value}} : null;
+  };
+}
+```
+这个函数实际上是一个工厂，它接受一个用来检测指定名字是否已被禁用的正则表达式，并返回一个验证器函数。
+
+在本例中，禁止的名字是“bob”； 验证器会拒绝任何带有“bob”的英雄名字。 在其他地方，只要配置的正则表达式可以匹配上，它可能拒绝“alice”或者任何其他名字。
+
+forbiddenNameValidator 工厂函数返回配置好的验证器函数。 该函数接受一个 Angular 控制器对象，并在控制器值有效时返回 null，或无效时返回验证错误对象。 
+验证错误对象通常有一个名为验证秘钥（forbiddenName）的属性。其值为一个任意词典，你可以用来插入错误信息（{name}）。
+
+自定义异步验证器和同步验证器很像，只是它们必须返回一个稍后会输出 null 或“验证错误对象”的承诺（Promise）或可观察对象，如果是可观察对象，那么它必须在某个时间点被完成（complete），
+那时候这个表单就会使用它输出的最后一个值作为验证结果。（译注：HTTP 服务是自动完成的，但是某些自定义的可观察对象可能需要手动调用 complete 方法）
+
+前面提到了异步验证器，很多情况下确实需要服务端验证返回一个结果后体现在表单验证上，看看后面有没有这方面的介绍。
+
+####### 1.4.2.3.1.添加响应式表单
+
+在响应式表单组件中，添加自定义验证器相当简单。你所要做的一切就是直接把这个函数传给 FormControl 。
+
+hero-form-reactive.component.ts (validator functions)
+```typescript
+this.heroForm = new FormGroup({
+  'name': new FormControl(this.hero.name, [
+    Validators.required,
+    Validators.minLength(4),
+    forbiddenNameValidator(/bob/i) // <-- Here's how you pass in the custom validator.
+  ]),
+  'alterEgo': new FormControl(this.hero.alterEgo),
+  'power': new FormControl(this.hero.power, Validators.required)
+});
+```
+####### 1.4.2.3.2.添加到模板驱动表单
+
+在模板驱动表单中，你不用直接访问 FormControl 实例。所以不能像响应式表单中那样把验证器传进去，而应该在模板中添加一个指令。
+
+ForbiddenValidatorDirective 指令相当于 forbiddenNameValidator 的包装器。
+
+Angular 在验证流程中的识别出指令的作用，是因为指令把自己注册到了 NG_VALIDATORS 提供商中，该提供商拥有一组可扩展的验证器。
+
+forbidden-name.directive.ts (providers)
+```typescript
+providers: [{provide: NG_VALIDATORS, useExisting: ForbiddenValidatorDirective, multi: true}]
+```
+然后该指令类实现了 Validator 接口，以便它能简单的与 Angular 表单集成在一起。这个指令的其余部分有助于你理解它们是如何协作的：
+
+forbidden-name.directive.ts (directive)
+```typescript
+@Directive({
+  selector: '[appForbiddenName]',
+  providers: [{provide: NG_VALIDATORS, useExisting: ForbiddenValidatorDirective, multi: true}]
+})
+export class ForbiddenValidatorDirective implements Validator {
+  @Input('appForbiddenName') forbiddenName: string;
+ 
+  validate(control: AbstractControl): {[key: string]: any} | null {
+    return this.forbiddenName ? forbiddenNameValidator(new RegExp(this.forbiddenName, 'i'))(control)
+                              : null;
+  }
+}
+```
+它看起来有那么点像@Component，还能接受@Input。
+
+一旦 ForbiddenValidatorDirective 写好了，你只要把 forbiddenName 选择器添加到输入框上就可以激活这个验证器了。比如：
+
+hero-form-template.component.html (forbidden-name-input)
+```html
+<input id="name" name="name" class="form-control"
+      required minlength="4" appForbiddenName="bob"
+      [(ngModel)]="hero.name" #name="ngModel" >
+```
+如果我没记错，@Component接受@Input需要带一对方括号，而@Directive不需要。
+
+你可能注意到了自定义验证器指令是用 useExisting 而不是 useClass 来实例化的。注册的验证器必须是这个 ForbiddenValidatorDirective 实例本身，也就是表单中
+forbiddenName 属性被绑定到了"bob"的那个。如果用 useClass 来代替 useExisting，就会注册一个新的类实例，而它是没有 forbiddenName 的。
+
+###### 1.4.2.4.表示控件状态的 CSS 类
+
+* .ng-valid
+* .ng-invalid
+* .ng-pending
+* .ng-pristine
+* .ng-dirty
+* .ng-untouched
+* .ng-touched
+
+###### 1.4.2.5.跨字段交叉验证
+
+本节将展示如何进行跨字段验证。这里假设你已经有了创建自定义验证器所需的基础知识。
+
+如果你以前没有创建过自定义验证器，请先阅读自定义验证器一节。
+
+在下一节中，我们要确保英雄们不能通过填写表单来暴露他们的真实身份。要做到这一点，我们就要验证英雄的名字和他的第二人格（alterEgo）是否匹配。
+
+####### 1.4.2.5.1.添加到响应式表单
+
+表单具有下列结构：
+
+content_copy
+const heroForm = new FormGroup({
+  'name': new FormControl(),
+  'alterEgo': new FormControl(),
+  'power': new FormControl()
+});
+
+注意，name 和 alterEgo 是兄弟控件。要想在单个的自定义验证器中计算这两个控件，我们就得在它们共同的祖先控件（FormGroup）中进行验证。这样，我们就可以查询 FormGroup 的子控件，
+从而让我们能够比较它们的值。
+
+要想给 FormGroup 添加验证器，就要在创建时把一个新的验证器传给它的第二个参数。
+
+```typescript
+const heroForm = new FormGroup({
+  'name': new FormControl(),
+  'alterEgo': new FormControl(),
+  'power': new FormControl()
+}, { validators: identityRevealedValidator });
+```
+验证器的代码如下：
+
+identity-revealed.directive.ts
+```typescript
+/** A hero's name can't match the hero's alter ego */
+export const identityRevealedValidator: ValidatorFn = (control: FormGroup): ValidationErrors | null => {
+  const name = control.get('name');
+  const alterEgo = control.get('alterEgo');
+
+  return name && alterEgo && name.value === alterEgo.value ? { 'identityRevealed': true } : null;
+};
+
+```
+这个身份验证器实现了 ValidatorFn 接口。它接收一个 Angular 表单控件对象作为参数，当表单有效时，它返回一个 null，否则返回 ValidationErrors 对象。
+
+我们先通过调用 FormGroup 的 get 方法来获取子控件。然后，简单地比较一下 name 和 alterEgo 控件的值。
+
+如果这两个值不一样，那么英雄的身份就应该继续保密，我们可以安全的返回 null。否则就说明英雄的身份已经暴露了，我们必须通过返回一个错误对象来把这个表单标记为无效的。
+
+接下来，为了提供更好的用户体验，当表单无效时，我们还要显示一个恰当的错误信息。
+
+hero-form-template.component.html
+```html
+<div *ngIf="heroForm.errors?.identityRevealed && (heroForm.touched || heroForm.dirty)" class="cross-validation-error-message alert alert-danger">
+    Name cannot match alter ego.
+</div>
+```
+注意，我们需要检查：
+
+* FormGroup 应该有一个由 identityRevealed 验证器返回的交叉验证错误对象。
+* 用户已经和表单进行过交互。
+
+####### 1.4.2.5.2.添加到模板驱动表单中
+
+首先，我们必须创建一个指令，它会包装这个验证器函数。我们使用 NG_VALIDATORS 令牌来把它作为验证器提供出来。如果你还不清楚为什么要这么做或者不能完全理解这种语法，请重新访问前面的小节。
+
+identity-revealed.directive.ts
+```typescript
+@Directive({
+  selector: '[appIdentityRevealed]',
+  providers: [{ provide: NG_VALIDATORS, useExisting: IdentityRevealedValidatorDirective, multi: true }]
+})
+export class IdentityRevealedValidatorDirective implements Validator {
+  validate(control: AbstractControl): ValidationErrors {
+    return identityRevealedValidator(control)
+  }
+}
+```
+
+接下来，我们要把该指令添加到 HTML 模板中。由于验证器必须注册在表单的最高层，所以我们要把该指令放在 form 标签上。
+
+hero-form-template.component.html
+```html
+<form #heroForm="ngForm" appIdentityRevealed>
+```
+为了提供更好的用户体验，当表单无效时，我们要显示一个恰当的错误信息。
+
+hero-form-template.component.html
+```html
+<div *ngIf="heroForm.errors?.identityRevealed && (heroForm.touched || heroForm.dirty)" class="cross-validation-error-message alert alert-danger">
+    Name cannot match alter ego.
+</div>
+```
+
+注意，我们需要检查：
+
+* 该表单具有一个由 identityRevealed 验证器提供的交叉验证错误对象。
+* 用户已经和表单进行过交互。
+
+这样就完成了这个交叉验证的例子。我们的做法是：
+
+* 基于两个相邻控件的值来验证表单
+* 当用户与表单交互过并且验证失败时，才显示一个描述性的错误信息。
+
+###### 1.4.2.6.异步验证
+
+本节展示如何创建异步验证器。这里假设你已经具有了一些创建自定义验证器的基础知识。
+
+####### 1.4.2.6.1.基础
+
+就像同步验证器有 ValidatorFn 和 Validator 接口一样，异步验证器也有自己的对应物：AsyncValidatorFn 和 AsyncValidator。
+
+它们非常像，但是有下列不同：
+
+* 它们必须返回承诺（Promise）或可观察对象（Observable），
+* 返回的可观察对象必须是有限的，也就是说，它必须在某个时间点结束（complete）。要把无尽的可观察对象转换成有限的，可以使用 first、last、take 或 takeUntil 
+等过滤型管道对其进行处理。
+
+注意！异步验证总是会在同步验证之后执行，并且只有当同步验证成功了之后才会执行。如果更基本的验证方法已经失败了，那么这能让表单避免进行可能会很昂贵的异步验证过程，比如 HTTP 请求。
+
+在异步验证器开始之后，**表单控件会进入 pending 状态**。你可以**监视该控件的 pending 属性**，利用它来给用户一些视觉反馈，表明正在进行验证。
+
+常见的 UI 处理模式是在执行异步验证时显示一个旋转指示标（spinner）。下面的例子展示了在模板驱动表单中该怎么做：
+
+```html
+<input [(ngModel)}="name" #model="ngModel" appSomeAsyncValidator>
+<app-spinner *ngIf="model.pending"></app-spinner>
+```
+####### 1.4.2.6.2.实现自定义异步验证器
+在下一节中，会异步执行一个验证，以确保英雄选取了一个还没有人选过的第二人格。新的英雄不断招募，而老的英雄不断离开。这意味着我们没法提前拿到一个可用的第二人格列表。
+
+要验证潜在的第二人格，我们需要咨询一个存有全部已招募英雄的中央数据库。而这个过程是异步的，我们需要一个特殊的验证器。
+
+我们先创建一个验证器类。
+
+```typescript
+@Injectable({ providedIn: 'root' })
+export class UniqueAlterEgoValidator implements AsyncValidator {
+  constructor(private heroesService: HeroesService) {}
+
+  validate(
+    ctrl: AbstractControl
+  ): Promise<ValidationErrors | null> | Observable<ValidationErrors | null> {
+    return this.heroesService.isAlterEgoTaken(ctrl.value).pipe(
+      map(isTaken => (isTaken ? { uniqueAlterEgo: true } : null)),
+      catchError(() => null)
+    );
+  }
+}
+```
+
+如你所见，UniqueAlterEgoValidator 类实现了 AsyncValidator 接口。在其构造函数中，我们注入了一个 HeroesService，其接口如下：
+
+```typescript
+interface HeroesService {
+  isAlterEgoTaken: (alterEgo: string) => Observable<boolean>;
+}
+```
+在真实的应用中，HeroesService 负责向英雄数据库发起一个 HTTP 请求，以检查该第二人格是否可用。 从该验证器的视角看，此服务的具体实现无关紧要，所以我们仅仅针对 HeroesService 
+接口来写实现代码。
+
+当验证开始的时候，UniqueAlterEgoValidator 把任务委托给 HeroesService 的 isAlterEgoTaken() 方法，并传入当前控件的值。这时候，该控件会被标记为 pending 状态，直到 
+validate() 方法所返回的可观察对象完成（complete）了。
+
+isAlterEgoTaken() 方法会发出一个 HTTP 请求，以检查该第二人格是否可用，并返回一个 Observable<boolean> 型结果。我们通过 map 操作符把响应对象串起来，
+并把它转换成一个有效性结果。 与往常一样，如果表单有效则返回 null，否则返回 ValidationErrors。我们还是用 catchError 操作符来确保对任何潜在错误都进行了处理。
+
+这里，我们决定将 isAlterEgoTaken() 中的错误视为成功验证，因为如果没能发起验证请求，未必代表这个第二人格是无效的。你也可以将其视为失败，并返回 ValidationError 对象。
+
+一段时间之后，可观察对象完成了，异步验证也就结束了。这时候 pending 标志就改成了 false，并且表单的有效性也更新了。
+
+####### 1.4.2.6.3.性能上的注意事项
+
+默认情况下，每当表单值变化之后，都会执行所有验证器。对于同步验证器，没有什么会显著影响应用性能的地方。不过，异步验证器通常会执行某种 HTTP 请求来对控件进行验证。如果在每次按键之后都发出 HTTP 请求会给后端 API 带来沉重的负担，应该尽量避免。
+
+我们可以把 updateOn 属性从 change（默认值）改成 submit 或 blur 来推迟表单验证的更新时机。
+
+对于模板驱动表单：
+
+content_copy
+<input [(ngModel)]="name" [ngModelOptions]="{updateOn: 'blur'}">
+对于响应式表单：
+
+content_copy
+new FormControl('', {updateOn: 'blur'});
+
+## 其它重要学习主题
+
+其实包括依赖注入、动画、路由与导航等主题都挺重要的，不过这些都好理解，甚至可以不知甚解熟能生巧即可。但是RxJs似乎却不能不求甚解。正好案头上有本《深入浅出RxJS》，所以我决定新建
+一个gitHub项目专门学习它：https://github.com/YuxingXie/rxjsStudy
