@@ -3239,38 +3239,61 @@ Angular 使用可观察对象作为处理各种常用异步操作的接口。比
 
 Angular 提供了一个 EventEmitter 类，它用来从组件的 @Output() 属性中发布一些值。EventEmitter 扩展了 Observable，并添加了一个 emit() 方法，这样它就可以发送任意值了。当你调用 emit() 时，就会把所发送的值传给订阅上来的观察者的 next() 方法。
 
-这种用法的例子参见 EventEmitter 文档。下面这个范例组件监听了 open 和 close 事件：
-```html
-<zippy (open)="onOpen($event)" (close)="onClose($event)"></zippy>
+EventEmitter的定义如下，可以看出它是一个Subject。
+```typescript
+class EventEmitter<T> extends Subject {
+  constructor(isAsync: boolean = false)
+  __isAsync: boolean
+  emit(value?: T)
+  subscribe(generatorOrNext?: any, error?: any, complete?: any): any
+}
 ```
 
+这种用法的例子参见 EventEmitter 文档。下面这个范例组件监听了 open 和 close 事件：
 
+src/app/components/app/app.component.html:
+```html
+<app-zippy (open)="onOpen($event)" (close)="onClose($event)"></app-zippy>
+```
+src/app/components/app/app.component.ts:
+```typescript
+  onOpen = (item) => {
+    console.log(item);
+  }
+  onClose = (item) => {
+    console.log(item);
+  }
+```
 组件的定义如下：
 
-EventEmitter
+src/app/components/zippy/zippy.component.ts:
 ```javascript
+import {Component, EventEmitter, OnInit, Output} from '@angular/core';
+
 @Component({
-  selector: 'zippy',
+  selector: 'app-zippy',
   template: `
-  <div class="zippy">
-    <div (click)="toggle()">Toggle</div>
-    <div [hidden]="!visible">
-      <ng-content></ng-content>
-    </div>
-  </div>`})
- 
+    <div class="zippy">
+      <div (click)="toggle()">Toggle</div>
+      <div [hidden]="!visible">
+        Can you see me?
+        <ng-content></ng-content>
+      </div>
+    </div>`})
+
 export class ZippyComponent {
   visible = true;
   @Output() open = new EventEmitter<any>();
   @Output() close = new EventEmitter<any>();
- 
+
   toggle() {
     this.visible = !this.visible;
     if (this.visible) {
-      this.open.emit(null);
+      this.open.emit('visible');
     } else {
-      this.close.emit(null);
+      this.close.emit('invisible');
     }
   }
 }
+
 ```

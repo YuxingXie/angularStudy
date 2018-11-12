@@ -7,4 +7,10 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'app';
+  onOpen = (item) => {
+    console.log(item);
+  }
+  onClose = (item) => {
+    console.log(item);
+  }
 }

@@ -19,6 +19,7 @@ import { HeroSearchComponent } from './components/hero-search/hero-search.compon
 import { ReactiveFormsModule } from '@angular/forms';
 import { NameEditorComponent } from './components/name-editor/name-editor.component';
 import { ProfileEditorComponent } from './components/profile-editor/profile-editor.component';
+import { ZippyComponent } from './components/zippy/zippy.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -32,7 +33,8 @@ import { ProfileEditorComponent } from './components/profile-editor/profile-edit
     DashboardComponent,
     HeroSearchComponent,
     NameEditorComponent,
-    ProfileEditorComponent
+    ProfileEditorComponent,
+    ZippyComponent
   ],
   imports: [
     FormsModule,
