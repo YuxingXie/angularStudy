@@ -3416,3 +3416,4 @@ export class MyComponent implements OnInit {
   }
 }
 ```
+注意：nameControl.valueChanges.forEach，这个forEach不是数组的forEach方法，而是可观察对象的forEach操作符，它Observable 发出的每个值的处理器。
