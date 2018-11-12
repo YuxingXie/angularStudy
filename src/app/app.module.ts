@@ -20,6 +20,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { NameEditorComponent } from './components/name-editor/name-editor.component';
 import { ProfileEditorComponent } from './components/profile-editor/profile-editor.component';
 import { ZippyComponent } from './components/zippy/zippy.component';
+import { AsyncObservablePipeComponent } from './components/async-observable-pipe/async-observable-pipe.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -34,7 +35,8 @@ import { ZippyComponent } from './components/zippy/zippy.component';
     HeroSearchComponent,
     NameEditorComponent,
     ProfileEditorComponent,
-    ZippyComponent
+    ZippyComponent,
+    AsyncObservablePipeComponent
   ],
   imports: [
     FormsModule,

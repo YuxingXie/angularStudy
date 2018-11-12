@@ -3297,3 +3297,122 @@ export class ZippyComponent {
 }
 
 ```
+这里我们第一次接触@Output,示例代码最有说服力，不用多说什么，我们已经知道它的用途了。
+
+ng-content也是第一次见，它的意义是让子组件在它所在位置显示，这里app-zippy没有子组件所以没有什么意义。
+
+ZippyComponent的父组件AppComponent通过onOpen和onClose捕捉到了子组件emit过来的值，onXXX这算是一种约定命名吧。
+
+### 7.3.1.2.HTTP
+
+Angular 的 HttpClient 从 HTTP 方法调用中返回了可观察对象。例如，http.get(‘/api’) 就会返回可观察对象。相对于基于承诺（Promise）的 HTTP API，它有一系列优点：
+
+* 可观察对象不会修改服务器的响应（和在承诺上串联起来的 .then() 调用一样）。反之，你可以使用一系列操作符来按需转换这些值。
+* HTTP 请求是可以通过 unsubscribe() 方法来取消的。
+* 请求可以进行配置，以获取进度事件的变化。
+* 失败的请求很容易重试。
+
+### 7.3.1.3.Async 管道
+
+AsyncPipe 会订阅一个可观察对象或承诺，并返回其发出的最后一个值。当发出新值时，该管道就会把这个组件标记为需要进行变更检查的（译注：因此可能导致刷新界面）。
+
+下面的例子把 time 这个可观察对象绑定到了组件的视图中。这个可观察对象会不断使用当前时间更新组件的视图。
+
+Using async pipe
+```typescript
+import { Component, OnInit } from '@angular/core';
+import {Observable} from 'rxjs/Observable';
+
+@Component({
+  selector: 'app-async-observable-pipe',
+  template: `<div><code>observable|async</code>:
+    Time: {{ time | async }}</div>`
+})
+export class AsyncObservablePipeComponent {
+  time = new Observable(observer => {
+    setInterval(() => {
+      return observer.next(new Date().toString());
+    }, 1000);
+    }
+
+  );
+}
+```
+### 7.3.1.4.路由器 (router)
+
+Router.events 以可观察对象的形式提供了其事件。 你可以使用 RxJS 中的 filter() 操作符来找到感兴趣的事件，并且订阅它们，以便根据浏览过程中产生的事件序列作出决定。 例子如下：
+
+Router events
+```typescript
+import { Router, NavigationStart } from '@angular/router';
+import { filter } from 'rxjs/operators';
+ 
+@Component({
+  selector: 'app-routable',
+  templateUrl: './routable.component.html',
+  styleUrls: ['./routable.component.css']
+})
+export class Routable1Component implements OnInit {
+ 
+  navStart: Observable<NavigationStart>;
+ 
+  constructor(private router: Router) {
+    // Create a new Observable the publishes only the NavigationStart event
+    this.navStart = router.events.pipe(
+      filter(evt => evt instanceof NavigationStart)
+    ) as Observable<NavigationStart>;
+  }
+ 
+  ngOnInit() {
+    this.navStart.subscribe(evt => console.log('Navigation Started!'));
+  }
+}
+```
+
+ActivatedRoute 是一个可注入的路由器服务，它使用可观察对象来获取关于路由路径和路由参数的信息。比如，ActivateRoute.url 包含一个用于汇报路由路径的可观察对象。例子如下：
+
+ActivatedRoute
+```typescript
+import { ActivatedRoute } from '@angular/router';
+ 
+@Component({
+  selector: 'app-routable',
+  templateUrl: './routable.component.html',
+  styleUrls: ['./routable.component.css']
+})
+export class Routable2Component implements OnInit {
+  constructor(private activatedRoute: ActivatedRoute) {}
+ 
+  ngOnInit() {
+    this.activatedRoute.url
+      .subscribe(url => console.log('The URL changed to: ' + url));
+  }
+}
+```
+### 7.3.1.5.响应式表单 (reactive forms)
+
+响应式表单具有一些属性，它们使用可观察对象来监听表单控件的值。 FormControl 的 valueChanges 属性和 statusChanges 属性包含了会发出变更事件的可观察对象。
+订阅可观察的表单控件属性是在组件类中触发应用逻辑的途径之一。比如：
+
+```typescript
+import { FormGroup } from '@angular/forms';
+ 
+@Component({
+  selector: 'my-component',
+  template: 'MyComponent Template'
+})
+export class MyComponent implements OnInit {
+  nameChangeLog: string[] = [];
+  heroForm: FormGroup;
+ 
+  ngOnInit() {
+    this.logNameChange();
+  }
+  logNameChange() {
+    const nameControl = this.heroForm.get('name');
+    nameControl.valueChanges.forEach(
+      (value: string) => this.nameChangeLog.push(value)
+    );
+  }
+}
+```
