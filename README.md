@@ -2109,22 +2109,22 @@ switchMap() 会记住原始的请求顺序，只会返回最近一次 HTTP 方�
 ```
 记住，组件类中并没有订阅 heroes$ 这个可观察对象，而是由模板中的 AsyncPipe 完成的。
 
-# 选修内容
+# 7.选修内容
 
-## Angular Universal：服务端渲染
+## 7.1.Angular Universal：服务端渲染
 
 研究了半天，发现只能运行在node.js服务器上。虽然我曾经用node.js开发过web serer app,然而那是一段黑暗的历史。我尝试找angular java serer rending项目，google到了
 一个：https://github.com/swaechter/angularj-universal ，但是我突然觉得这个主题不是那么吸引人了，先跳过等有时间再来研究。
 
-## 核心知识
+## 7.2.核心知识
 
-### 1.表单
+### 7.2.1.表单
 
 这一节（1.1）建议学习了下两节再回来看。
 
-#### 1.1.简介
+#### 7.2.1.1.简介
 
-##### 1.1.1.Angular 表单检测
+##### 7.2.1.1.1.Angular 表单检测
 用表单处理用户输入是许多常见应用的基础功能。 应用通过表单来让用户登录、修改个人档案、输入敏感信息以及执行各种数据输入任务。
 
 Angular 提供了两种不同的方法来通过表单处理用户输入：响应式表单和模板驱动表单。 两者都从视图中捕获用户输入事件、验证用户输入、创建表单模型、修改数据模型，并提供跟踪这些更改的途径。
@@ -2139,7 +2139,7 @@ Angular 提供了两种不同的方法来通过表单处理用户输入：响应
 
 本指南提供的信息可以帮你确定哪种方式最适合你的情况。它介绍了这两种方法所用的公共构造块，还总结了两种方式之间的关键区别，并在建立、数据流和测试等不同的情境下展示了这些差异。
 
-##### 1.1.2.关键差异
+##### 7.2.1.1.2.关键差异
 
 
 下表总结了响应式表单和模板驱动表单之间的一些关键差异。
@@ -2186,12 +2186,12 @@ Angular 提供了两种不同的方法来通过表单处理用户输入：响应
 </tbody>
 </table>
 
-#### 1.2.响应式表单
+#### 7.2.1.2.响应式表单
 
 响应式表单提供了一种模型驱动的方式来处理表单输入，其中的值会随时间而变化。本文会向你展示如何创建和更新单个表单控件，然后在一个分组中使用多个控件，
 验证表单的值，以及如何实现更高级的表单。
 
-##### 1.2.1.响应式表单简介
+##### 7.2.1.2.1.响应式表单简介
 
 响应式表单使用显式的、不可变的方式，管理表单在特定的时间点上的状态。对表单状态的每一次变更都会返回一个新的状态，这样可以在变化时维护模型的整体性。
 响应式表单是围绕 Observable 的流构建的，表单的输入和值都是通过这些输入值组成的流来提供的，它可以同步访问。
@@ -2203,11 +2203,11 @@ Angular 提供了两种不同的方法来通过表单处理用户输入：响应
 并借助可变数据来异步跟踪变化。参见表单概览来了解这两种范式之间的详细比较。
 
 
-##### 1.2.2.快速起步
+##### 7.2.1.2.2.快速起步
 
 本节描述了如何添加单个表单控件。这里的例子允许用户在输入框中输入自己的名字，捕获输入的值，并把表单控件元素的当前值显示出来。
 
-###### 1.2.2.1.步骤 1 - 注册 ReactiveFormsModule
+###### 7.2.1.2.2.1.步骤 1 - 注册 ReactiveFormsModule
 
 要使用响应式表单，就要从 @angular/forms 包中导入 ReactiveFormsModule 并把它添加到你的 NgModule 的 imports 数组中。
 
@@ -2225,7 +2225,7 @@ export class AppModule { }
 ```
 
 
-###### 1.2.2.2.步骤 2 - 生成并导入一个新的表单控件
+###### 7.2.1.2.2.2.步骤 2 - 生成并导入一个新的表单控件
 
 为该控件生成一个组件。
 
@@ -2263,7 +2263,7 @@ export class NameEditorComponent {
 
 可以用 FormControl 的构造函数设置初始值，这个例子中它是空字符串。通过在你的组件类中创建这些控件，你可以直接对表单控件的状态进行监听、修改和校验。
 
-###### 1.2.2.3.步骤 3 - 在模板中注册该控件
+###### 7.2.1.2.2.3.步骤 3 - 在模板中注册该控件
 
 在组件类中创建了控件之后，你还要把它和模板中的一个表单控件关联起来。修改模板，为表单控件添加 formControl 绑定，formControl 是由 ReactiveFormsModule 中的 FormControlDirective 提供的。
 
@@ -2295,11 +2295,11 @@ src/app/components/app.component.html (name editor)
 <app-name-editor></app-name-editor>
 ```
 
-##### 1.2.3.管理控件的值
+##### 7.2.1.2.3.管理控件的值
 
 响应式表单让你可以访问表单控件此刻的状态和值。你可以通过组件类或组件模板来操纵其当前状态和值。下面的例子会显示及修改 FormControl 实例的值。
 
-###### 1.2.3.1.显示表单控件的值
+###### 7.2.1.2.3.1.显示表单控件的值
 
 你可以用两种方式显示它的值：
 
@@ -2345,7 +2345,7 @@ src/app/components/name-editor/name-editor.component.ts
 要了解 FormControl 的其它属性和方法，参见响应式表单 API一节。
 
 
-###### 1.2.3.2.替换表单控件的值
+###### 7.2.1.2.3.2.替换表单控件的值
 
 响应式表单还有一些方法可以用编程的方式修改控件的值，它让你可以灵活的修改控件的值而不需要借助用户交互。FormControl 提供了一个 setValue() 方法，它会修改这个表单控件的值，并且验证与控件结构相对应的值的结构。比如，当从后端 API 或服务接收到了表单数据时，可以通过 setValue() 方法来把原来的值替换为新的值。
 
@@ -2371,7 +2371,7 @@ name-editor.component.html (update value)
 
 **注意：在这个例子中，你只使用单个控件，但是当调用 FormGroup 或 FormArray 的 setValue() 方法时，传入的值就必须匹配控件组或控件数组的结构才行。**
 
-##### 1.2.4.把表单控件分组
+##### 7.2.1.2.4.把表单控件分组
 
 就像 FormControl 的实例能让你控制单个输入框所对应的控件一样，FormGroup 的实例也能跟踪一组 FormControl 实例（比如一个表单）的表单状态。当创建 FormGroup 时，其中的每个控件都会根据其名字进行跟踪。下列例子展示了如何管理单个控件组中的多个 FormControl 实例。
 
@@ -2386,7 +2386,7 @@ profile-editor.component.ts (imports)
 import { FormGroup, FormControl } from '@angular/forms';
 ```
 
-##### 1.2.4.1.步骤 1 - 创建 FormGroup 实例
+##### 7.2.1.2.4.1.步骤 1 - 创建 FormGroup 实例
 
 在组件类中创建一个名叫 profileForm 的属性，并设置为 FormGroup 的一个新实例。要初始化这个 FormGroup，请为构造函数提供一个由控件组成的对象，
 对象中的每个名字都要和表单控件的名字一一对应。
@@ -2413,7 +2413,7 @@ export class ProfileEditorComponent {
 
 现在，这些独立的表单控件被收集到了一个控件组中。这个 FormGroup 用对象的形式提供了它的模型值，这个值来自组中每个控件的值。 FormGroup 实例拥有和 FormControl 实例相同的属性（比如 value、untouched）和方法（比如 setValue()）。
 
-##### 1.2.4.2.步骤 2 - 关联 FormGroup 的模型和视图
+##### 7.2.1.2.4.2.步骤 2 - 关联 FormGroup 的模型和视图
 
 这个表单组还能跟踪其中每个控件的状态及其变化，所以如果其中的某个控件的状态或值变化了，父控件也会发出一次新的状态变更或值变更事件。该控件组的模型来自它的所有成员。在定义了这个模型之后，你必须更新模板，来把该模型反映到视图中。
 
@@ -2437,7 +2437,7 @@ profile-editor.component.html (template form group)
 注意，就像 FormGroup 所包含的那控件一样，profileForm 这个 FormGroup 也通过 FormGroup 指令绑定到了 form 元素，在该模型和表单中的输入框之间创建了一个通讯层。 由 **FormControlName** 指令提供的 **formControlName** 属性把每个输入框和 FormGroup 中定义的表单控件绑定起来。
 这些表单控件会和相应的元素通讯，它们还把更改传递给 FormGroup，这个 FormGroup 是模型值的真正源头。
 
-##### 1.2.4.3.保存表单数据
+##### 7.2.1.2.4.3.保存表单数据
 
 ProfileEditor 组件从用户那里获得输入，但在真实的场景中，你可能想要先捕获表单的值，等将来在组件外部进行处理。 FormGroup 指令会监听 form 元素发出的 submit 事件，并发出一个 ngSubmit 事件，让你可以绑定一个回调函数。
 
@@ -2469,10 +2469,10 @@ profile-editor.component.html (submit button)
 ```
 **注意：上面这个代码片段中的按钮还附加了一个 disabled 绑定，用于在 profileForm 无效时禁用该按钮。目前你还没有执行任何表单验证逻辑，因此该按钮始终是可用的。稍后的表单验证一节会讲解简单的表单验证。**
 
-##### 1.2.4.4.显示组件
+##### 7.2.1.2.4.4.显示组件
 略
 
-##### 1.2.4.5.增强FormGroup
+##### 7.2.1.2.4.5.增强FormGroup
 上面例子我们看到表单提交时控制台打印：
 ```js
 {firstName: "James", lastName: "Bond"}
@@ -2483,18 +2483,18 @@ profile-editor.component.html (submit button)
 ```
 对不起，多次尝试都报错，继续学习。
 
-#### 1.2.5.嵌套的表单组
+#### 7.2.1.2.5.嵌套的表单组
 
 如果要构建复杂的表单，如果能在更小的分区中管理不同类别的信息就会更容易一些，而有些信息分组可能会自然的汇入另一个更大的组中。使用嵌套的 FormGroup 可以让你把大型表单组织成一些稍小的、易管理的分组。
 
-##### 1.2.5.1.步骤 1 - 创建嵌套的分组
+##### 7.2.1.2.5.1.步骤 1 - 创建嵌套的分组
 
 “地址”就是可以把信息进行分组的绝佳范例。FormGroup 可以同时接纳 FormControl 和 FormGroup 作为子控件。这使得那些比较复杂的表单模型可以更易于维护、更有逻辑性。要想在 profileForm 中创建一个嵌套的分组，请添加一个内嵌的名叫 address 的元素指向这个 FormGroup 实例。
 
 在这个例子中，address group 把现有的 firstName、lastName 控件和新的 street、city、state 和 zip 控件组合在一起。虽然 address 这个 FormGroup 是 profileForm 这个整体 FormGroup 的一个子控件，但是仍然适用同样的值和状态的变更规则。
 来自内嵌控件组的状态和值的变更将会冒泡到它的父控件组，以维护整体模型的一致性。
 
-##### 1.2.5.2.步骤 2 - 在模板中分组内嵌的表单
+##### 7.2.1.2.5.2.步骤 2 - 在模板中分组内嵌的表单
 
 profile-editor.component.html (template nested form group)
 ```html
@@ -2536,11 +2536,11 @@ ProfileEditor 表单显示为一个组，但是将来这个模型会被进一步
 
 **注意：这里使用了 value 属性和 JsonPipe 管道在组件模板中显示了这个 FormGroup 的值。**
 
-#### 1.2.6.部分模型更新
+#### 7.2.1.2.6.部分模型更新
 
 当修改包含多个 FormGroup 实例的值时，你可能只希望更新模型中的一部分，而不是完全替换掉。这一节会讲解该如何更新 AbstractControl 模型中的一部分。
 
-##### 1.2.6.1.修补（Patching）模型值
+##### 7.2.1.2.6.1.修补（Patching）模型值
 
 有两种更新模型值的方式：
 
@@ -2576,18 +2576,18 @@ profile-editor.component.html (update value)
 
 当点击按钮时，profileForm 模型中只有 firstName 和 street 被修改了。注意，street 是在 address 属性的对象中被修改的。这种结构是必须的，因为 patchValue() 方法要针对模型的结构进行更新。patchValue() 只会更新表单模型中所定义的那些属性。
 
-#### 1.2.7.使用 FormBuilder 来生成表单控件
+#### 7.2.1.2.7.使用 FormBuilder 来生成表单控件
 
 当需要与多个表单打交道时，手动创建多个表单控件实例会非常繁琐。FormBuilder 服务提供了一些便捷方法来生成表单控件。FormBuilder 在幕后也使用同样的方式来创建和返回这些实例，只是用起来更简单。
 
 下面的小节中会重构 ProfileEditor 组件，用 FormBuilder 来代替手工创建这些 FormControl 和 FormGroup 实例。
 
-##### 1.2.7.1.步骤 1 - 导入 FormBuilder 类
+##### 7.2.1.2.7.1.步骤 1 - 导入 FormBuilder 类
 profile-editor.component.ts (import)
 ```typescript
 import { FormBuilder } from '@angular/forms';
 ```
-##### 1.2.7.2.步骤 2 - 注入 FormBuilder 服务
+##### 7.2.1.2.7.2.步骤 2 - 注入 FormBuilder 服务
 
 FormBuilder 是一个可注入的服务提供商，它是由 ReactiveFormModule 提供的。只要把它添加到组件的构造函数中就可以注入这个依赖。
 
@@ -2652,7 +2652,7 @@ profile-editor.component.ts (import)
 import { Validators } from '@angular/forms';
 ```
 
-###### 1.2.8.2.步骤 2 - 把字段设为必填（required）
+###### 7.2.1.2.8.2.步骤 2 - 把字段设为必填（required）
 最常见的校验项是把一个字段设为必填项。本节描述如何为 firstName 控件添加“必填项”验证器。
 
 在 ProfileEditor 组件中，把静态方法 Validators.required 设置为 firstName 控件值数组中的第二项。
@@ -2682,7 +2682,7 @@ profile-editor.component.html (required attribute)
 
 注意：这些 HTML5 验证器属性可以和 Angular 响应式表单提供的内置验证器组合使用。组合使用这两种验证器实践，可以防止在模板检查完之后表达式再次被修改导致的错误。
 
-###### 1.2.8.3.显示表单状态
+###### 7.2.1.2.8.3.显示表单状态
 
 当你往表单控件上添加了一个必填字段时，它的初始值是无效的（invalid）。这种无效状态会传播到其父 FormGroup 元素中，也让这个 FormGroup 的状态变为无效的。你可以通过该 FormGroup 实例的 status 属性来访问其当前状态。
 
@@ -2715,7 +2715,7 @@ profile-editor.component.ts (import)
 import { FormArray } from '@angular/forms';
 ```
 
-###### 1.2.9.2.步骤 2 - 定义 FormArray
+###### 7.2.1.2.9.2.步骤 2 - 定义 FormArray
 
 你可以通过把一组（从零项到多项）控件定义在一个数组中来初始化一个 FormArray。为 profileForm 添加一个 aliases 属性，把它定义为 FormArray 类型。
 
@@ -2740,7 +2740,7 @@ profileForm = this.fb.group({
 
 FormGroup 中的这个 aliases 控件现在管理着一个控件，将来还可以动态添加多个。
 
-###### 1.2.9.3.步骤 3 - 访问 FormArray 控件
+###### 7.2.1.2.9.3.步骤 3 - 访问 FormArray 控件
 
 相对于重复使用 profileForm.get() 方法获取每个实例的方式，getter 可以让你轻松访问表单数组各个实例中的别名。 表单数组实例用一个数组来代表未定数量的控件。通过 getter 来访问控件很方便，这种方法还能很容易地重复处理更多控件。
 
@@ -2766,7 +2766,7 @@ addAlias() {
 
 在这个模板中，这些控件会被迭代，把每个控件都显示为一个独立的输入框。
 
-###### 1.2.9.4.步骤 4 - 在模板中显示表单数组
+###### 7.2.1.2.9.4.步骤 4 - 在模板中显示表单数组
 
 要想为表单模型添加 aliases ，你必须把它加入到模板中供用户输入。和 FormGroupNameDirective 提供的 formGroupName 一样，FormArrayNameDirective 也使用 formArrayName 在这个 FormArray 实例和模板之间建立绑定。
 
@@ -2791,7 +2791,7 @@ profile-editor.component.html (aliases form array template)
 
 注：从打印的值看："aliases": [ "a", "b", "c", "d", "e", "f", "g" ] 是否表示aliases是一个匿名控件数组？
 
-#### 1.3.模板驱动表单
+#### 7.2.1.3.模板驱动表单
 
 这一节理解上不会有太多问题，我准备不写代码，只把一些值得说的提出来讲一下。
 
@@ -2858,19 +2858,19 @@ NgForm 指令为 form 增补了一些额外特性。 它会控制那些带有 ng
 <div [hidden]="!submitted">
 ```
 
-#### 1.4.表单验证
+#### 7.2.1.4.表单验证
 
 这一小节我没有自己写代码测试。如果您认为需要，就照着拷贝就好额。
 
-##### 1.4.1.模板驱动的表单验证
+##### 7.2.1.4.1.模板驱动的表单验证
 
 模板驱动表单验证就不深究了，看代码一目了然，没有什么障碍。当然前提还是有的，比如要理解模板变量的概念。
 
-##### 1.4.2.响应式表单验证
+##### 7.2.1.4.2.响应式表单验证
 
 在响应式表单中，真正的源码都在组件类中。不应该通过模板上的属性来添加验证器，而应该在组件类中直接把验证器函数添加到表单控件模型上（FormControl）。然后，一旦控件发生了变化，Angular 就会调用这些函数。
 
-###### 1.4.2.1.验证器函数
+###### 7.2.1.4.2.1.验证器函数
 
 有两种验证器函数：同步验证器和异步验证器。
 
@@ -2879,7 +2879,7 @@ NgForm 指令为 form 增补了一些额外特性。 它会控制那些带有 ng
 
 注意：出于性能方面的考虑，只有在所有同步验证器都通过之后，Angular 才会运行异步验证器。当每一个异步验证器都执行完之后，才会设置这些验证错误。
 
-###### 1.4.2.2.内置验证器
+###### 7.2.1.4.2.2.内置验证器
 
 你可以写自己的验证器，也可以使用一些 Angular 内置的验证器。
 
@@ -2939,7 +2939,7 @@ hero-form-reactive.component.html (name with error msg)
 * 该表单不再导出任何指令，而是使用组件类中定义的 name 读取器。
 * required 属性仍然存在，虽然验证不再需要它，但你仍然要在模板中保留它，以支持 CSS 样式或可访问性。
 
-###### 1.4.2.3.自定义验证器
+###### 7.2.1.4.2.3.自定义验证器
 
 由于内置验证器无法适用于所有应用场景，有时候你还是得创建自定义验证器。
 
@@ -2967,7 +2967,7 @@ forbiddenNameValidator 工厂函数返回配置好的验证器函数。 该函�
 
 前面提到了异步验证器，很多情况下确实需要服务端验证返回一个结果后体现在表单验证上，看看后面有没有这方面的介绍。
 
-####### 1.4.2.3.1.添加响应式表单
+####### 7.2.1.4.2.3.1.添加响应式表单
 
 在响应式表单组件中，添加自定义验证器相当简单。你所要做的一切就是直接把这个函数传给 FormControl 。
 
@@ -2983,7 +2983,7 @@ this.heroForm = new FormGroup({
   'power': new FormControl(this.hero.power, Validators.required)
 });
 ```
-####### 1.4.2.3.2.添加到模板驱动表单
+####### 7.2.1.4.2.3.2.添加到模板驱动表单
 
 在模板驱动表单中，你不用直接访问 FormControl 实例。所以不能像响应式表单中那样把验证器传进去，而应该在模板中添加一个指令。
 
@@ -3027,7 +3027,7 @@ hero-form-template.component.html (forbidden-name-input)
 你可能注意到了自定义验证器指令是用 useExisting 而不是 useClass 来实例化的。注册的验证器必须是这个 ForbiddenValidatorDirective 实例本身，也就是表单中
 forbiddenName 属性被绑定到了"bob"的那个。如果用 useClass 来代替 useExisting，就会注册一个新的类实例，而它是没有 forbiddenName 的。
 
-###### 1.4.2.4.表示控件状态的 CSS 类
+###### 7.2.1.4.2.4.表示控件状态的 CSS 类
 
 * .ng-valid
 * .ng-invalid
@@ -3037,7 +3037,7 @@ forbiddenName 属性被绑定到了"bob"的那个。如果用 useClass 来代替
 * .ng-untouched
 * .ng-touched
 
-###### 1.4.2.5.跨字段交叉验证
+###### 7.2.1.4.2.5.跨字段交叉验证
 
 本节将展示如何进行跨字段验证。这里假设你已经有了创建自定义验证器所需的基础知识。
 
@@ -3045,7 +3045,7 @@ forbiddenName 属性被绑定到了"bob"的那个。如果用 useClass 来代替
 
 在下一节中，我们要确保英雄们不能通过填写表单来暴露他们的真实身份。要做到这一点，我们就要验证英雄的名字和他的第二人格（alterEgo）是否匹配。
 
-####### 1.4.2.5.1.添加到响应式表单
+####### 7.2.1.4.2.5.1.添加到响应式表单
 
 表单具有下列结构：
 
@@ -3142,11 +3142,11 @@ hero-form-template.component.html
 * 基于两个相邻控件的值来验证表单
 * 当用户与表单交互过并且验证失败时，才显示一个描述性的错误信息。
 
-###### 1.4.2.6.异步验证
+###### 7.2.1.4.2.6.异步验证
 
 本节展示如何创建异步验证器。这里假设你已经具有了一些创建自定义验证器的基础知识。
 
-####### 1.4.2.6.1.基础
+####### 7.2.1.4.2.6.1.基础
 
 就像同步验证器有 ValidatorFn 和 Validator 接口一样，异步验证器也有自己的对应物：AsyncValidatorFn 和 AsyncValidator。
 
@@ -3209,7 +3209,7 @@ isAlterEgoTaken() 方法会发出一个 HTTP 请求，以检查该第二人格�
 
 一段时间之后，可观察对象完成了，异步验证也就结束了。这时候 pending 标志就改成了 false，并且表单的有效性也更新了。
 
-####### 1.4.2.6.3.性能上的注意事项
+####### 7.2.1.4.2.6.3.性能上的注意事项
 
 默认情况下，每当表单值变化之后，都会执行所有验证器。对于同步验证器，没有什么会显著影响应用性能的地方。不过，异步验证器通常会执行某种 HTTP 请求来对控件进行验证。如果在每次按键之后都发出 HTTP 请求会给后端 API 带来沉重的负担，应该尽量避免。
 
@@ -3224,7 +3224,199 @@ content_copy
 content_copy
 new FormControl('', {updateOn: 'blur'});
 
-## 其它重要学习主题
+## 7.3.RxJS
 
-其实包括依赖注入、动画、路由与导航等主题都挺重要的，不过这些都好理解，甚至可以不知甚解熟能生巧即可。但是RxJs似乎却不能不求甚解。正好案头上有本《深入浅出RxJS》，所以我决定新建
-一个gitHub项目专门学习它：https://github.com/YuxingXie/rxjsStudy
+它的主体研究放在一个独立项目中：https://github.com/YuxingXie/rxjsStudy
+
+与angular密切相关的在这里研究。
+
+### 7.3.1.Angular 中的可观察对象
+
+Angular 使用可观察对象作为处理各种常用异步操作的接口。比如：
+
+* EventEmitter 类派生自 Observable。
+* HTTP 模块使用可观察对象来处理 AJAX 请求和响应。
+* 路由器和表单模块使用可观察对象来监听对用户输入事件的响应。
+
+### 7.3.1.1.事件发送器 EventEmitter
+
+Angular 提供了一个 EventEmitter 类，它用来从组件的 @Output() 属性中发布一些值。EventEmitter 扩展了 Observable，并添加了一个 emit() 方法，这样它就可以发送任意值了。当你调用 emit() 时，就会把所发送的值传给订阅上来的观察者的 next() 方法。
+
+EventEmitter的定义如下，可以看出它是一个Subject。
+```typescript
+class EventEmitter<T> extends Subject {
+  constructor(isAsync: boolean = false)
+  __isAsync: boolean
+  emit(value?: T)
+  subscribe(generatorOrNext?: any, error?: any, complete?: any): any
+}
+```
+
+这种用法的例子参见 EventEmitter 文档。下面这个范例组件监听了 open 和 close 事件：
+
+src/app/components/app/app.component.html:
+```html
+<app-zippy (open)="onOpen($event)" (close)="onClose($event)"></app-zippy>
+```
+src/app/components/app/app.component.ts:
+```typescript
+  onOpen = (item) => {
+    console.log(item);
+  }
+  onClose = (item) => {
+    console.log(item);
+  }
+```
+组件的定义如下：
+
+src/app/components/zippy/zippy.component.ts:
+```javascript
+import {Component, EventEmitter, OnInit, Output} from '@angular/core';
+
+@Component({
+  selector: 'app-zippy',
+  template: `
+    <div class="zippy">
+      <div (click)="toggle()">Toggle</div>
+      <div [hidden]="!visible">
+        Can you see me?
+        <ng-content></ng-content>
+      </div>
+    </div>`})
+
+export class ZippyComponent {
+  visible = true;
+  @Output() open = new EventEmitter<any>();
+  @Output() close = new EventEmitter<any>();
+
+  toggle() {
+    this.visible = !this.visible;
+    if (this.visible) {
+      this.open.emit('visible');
+    } else {
+      this.close.emit('invisible');
+    }
+  }
+}
+
+```
+这里我们第一次接触@Output,示例代码最有说服力，不用多说什么，我们已经知道它的用途了。
+
+ng-content也是第一次见，它的意义是让子组件在它所在位置显示，这里app-zippy没有子组件所以没有什么意义。
+
+ZippyComponent的父组件AppComponent通过onOpen和onClose捕捉到了子组件emit过来的值，onXXX这算是一种约定命名吧。
+
+### 7.3.1.2.HTTP
+
+Angular 的 HttpClient 从 HTTP 方法调用中返回了可观察对象。例如，http.get(‘/api’) 就会返回可观察对象。相对于基于承诺（Promise）的 HTTP API，它有一系列优点：
+
+* 可观察对象不会修改服务器的响应（和在承诺上串联起来的 .then() 调用一样）。反之，你可以使用一系列操作符来按需转换这些值。
+* HTTP 请求是可以通过 unsubscribe() 方法来取消的。
+* 请求可以进行配置，以获取进度事件的变化。
+* 失败的请求很容易重试。
+
+### 7.3.1.3.Async 管道
+
+AsyncPipe 会订阅一个可观察对象或承诺，并返回其发出的最后一个值。当发出新值时，该管道就会把这个组件标记为需要进行变更检查的（译注：因此可能导致刷新界面）。
+
+下面的例子把 time 这个可观察对象绑定到了组件的视图中。这个可观察对象会不断使用当前时间更新组件的视图。
+
+Using async pipe
+```typescript
+import { Component, OnInit } from '@angular/core';
+import {Observable} from 'rxjs/Observable';
+
+@Component({
+  selector: 'app-async-observable-pipe',
+  template: `<div><code>observable|async</code>:
+    Time: {{ time | async }}</div>`
+})
+export class AsyncObservablePipeComponent {
+  time = new Observable(observer => {
+    setInterval(() => {
+      return observer.next(new Date().toString());
+    }, 1000);
+    }
+
+  );
+}
+```
+### 7.3.1.4.路由器 (router)
+
+Router.events 以可观察对象的形式提供了其事件。 你可以使用 RxJS 中的 filter() 操作符来找到感兴趣的事件，并且订阅它们，以便根据浏览过程中产生的事件序列作出决定。 例子如下：
+
+Router events
+```typescript
+import { Router, NavigationStart } from '@angular/router';
+import { filter } from 'rxjs/operators';
+ 
+@Component({
+  selector: 'app-routable',
+  templateUrl: './routable.component.html',
+  styleUrls: ['./routable.component.css']
+})
+export class Routable1Component implements OnInit {
+ 
+  navStart: Observable<NavigationStart>;
+ 
+  constructor(private router: Router) {
+    // Create a new Observable the publishes only the NavigationStart event
+    this.navStart = router.events.pipe(
+      filter(evt => evt instanceof NavigationStart)
+    ) as Observable<NavigationStart>;
+  }
+ 
+  ngOnInit() {
+    this.navStart.subscribe(evt => console.log('Navigation Started!'));
+  }
+}
+```
+
+ActivatedRoute 是一个可注入的路由器服务，它使用可观察对象来获取关于路由路径和路由参数的信息。比如，ActivateRoute.url 包含一个用于汇报路由路径的可观察对象。例子如下：
+
+ActivatedRoute
+```typescript
+import { ActivatedRoute } from '@angular/router';
+ 
+@Component({
+  selector: 'app-routable',
+  templateUrl: './routable.component.html',
+  styleUrls: ['./routable.component.css']
+})
+export class Routable2Component implements OnInit {
+  constructor(private activatedRoute: ActivatedRoute) {}
+ 
+  ngOnInit() {
+    this.activatedRoute.url
+      .subscribe(url => console.log('The URL changed to: ' + url));
+  }
+}
+```
+### 7.3.1.5.响应式表单 (reactive forms)
+
+响应式表单具有一些属性，它们使用可观察对象来监听表单控件的值。 FormControl 的 valueChanges 属性和 statusChanges 属性包含了会发出变更事件的可观察对象。
+订阅可观察的表单控件属性是在组件类中触发应用逻辑的途径之一。比如：
+
+```typescript
+import { FormGroup } from '@angular/forms';
+ 
+@Component({
+  selector: 'my-component',
+  template: 'MyComponent Template'
+})
+export class MyComponent implements OnInit {
+  nameChangeLog: string[] = [];
+  heroForm: FormGroup;
+ 
+  ngOnInit() {
+    this.logNameChange();
+  }
+  logNameChange() {
+    const nameControl = this.heroForm.get('name');
+    nameControl.valueChanges.forEach(
+      (value: string) => this.nameChangeLog.push(value)
+    );
+  }
+}
+```
+注意：nameControl.valueChanges.forEach，这个forEach不是数组的forEach方法，而是可观察对象的forEach操作符，它Observable 发出的每个值的处理器。
